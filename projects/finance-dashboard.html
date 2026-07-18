@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How I Architected This — Finance Dashboard | Rob Donohue</title>
+  <meta name="description" content="Architecture write-up: Personal Finance Dashboard — adapters, ETL, analytics, trade-offs, and extensibility." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="../js/main.js" defer></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="nav-brand" href="../index.html">
+        <span class="dot"></span>
+        rob.donohue / systems
+      </a>
+      <nav>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../demos/finance-dashboard/">Live demo</a></li>
+          <li><a href="https://github.com/robdon3/rob-donohue-portfolio/tree/main/demos/finance-dashboard/python" target="_blank" rel="noopener">Source</a></li>
+        </ul>
+      </nav>
+      <div class="nav-actions">
+        <button type="button" class="btn-icon" id="theme-toggle" aria-label="Toggle theme">☀</button>
+        <a class="btn btn-primary" href="../demos/finance-dashboard/">Live demo</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <header class="page-hero">
+      <p class="breadcrumb"><a href="../index.html">Home</a> / projects / finance-dashboard</p>
+      <h1>How I Architected This</h1>
+      <p class="lead">
+        Personal Finance Dashboard — an API-connected Python system with swappable market-data adapters,
+        a clear ETL spine, and pure analytics. Built as original demo code for architecture evaluation.
+      </p>
+      <div class="hero-cta" style="margin-top: 1rem">
+        <a class="btn btn-primary" href="../demos/finance-dashboard/">Open live demo</a>
+        <a class="btn btn-ghost" href="https://github.com/robdon3/rob-donohue-portfolio/tree/main/demos/finance-dashboard/python" target="_blank" rel="noopener">Python package</a>
+      </div>
+    </header>
+
+    <div class="content-grid">
+      <article class="prose">
+        <h2 id="problem">Problem framing</h2>
+        <p>
+          Hiring narratives often claim “built integrations” without showing boundaries.
+          This demo answers a concrete question: <strong>how do you structure a market-data-backed
+          portfolio tool so providers, transforms, and math stay independently testable?</strong>
+        </p>
+        <p>
+          Constraints for a portfolio artifact: no client secrets, no paid market SLA, must run offline
+          for interviews, and still demonstrate production habits (typing, logging, retries, config).
+        </p>
+
+        <h2 id="data-flow">Data flow</h2>
+        <div class="mermaid-wrap">
+          <pre class="mermaid">
+flowchart LR
+  CFG[settings.yaml + env] --> CLI[main.py CLI]
+  CLI --> FAC[client factory]
+  FAC --> M[Mock]
+  FAC --> Y[yfinance]
+  FAC --> A[Alpha Vantage]
+  M --> ETL[FinanceETLPipeline]
+  Y --> ETL
+  A --> ETL
+  ETL --> Q[quotes DF]
+  ETL --> P[positions DF]
+  ETL --> H[history DF]
+  Q --> AN[PortfolioAnalytics]
+  P --> AN
+  H --> AN
+  AN --> SNAP[snapshot / allocation]
+  AN --> PROJ[projections / metrics]
+  ETL --> CSV[optional CSV artifacts]
+  SNAP --> JSON[optional JSON export]
+          </pre>
+        </div>
+
+        <h2 id="modules">Module breakdown</h2>
+        <ul>
+          <li><strong><code>clients/</code></strong> — Adapter layer. <code>MarketDataClient</code> protocol; mock, yfinance, Alpha Vantage implementations. Network and vendor quirks stop here.</li>
+          <li><strong><code>models/</code></strong> — Pydantic contracts (<code>MarketQuote</code>, <code>PriceBar</code>, <code>Holding</code>, <code>PortfolioSnapshot</code>). Stable language between layers.</li>
+          <li><strong><code>etl/</code></strong> — Extract via client, transform to DataFrames, join holdings↔quotes, optional load to CSV.</li>
+          <li><strong><code>analytics/</code></strong> — Pure functions: valuation, weights, projections, rough vol/Sharpe/drawdown from history.</li>
+          <li><strong><code>utils/</code></strong> — Logging setup + exponential backoff decorator (swap for tenacity later without redesign).</li>
+          <li><strong><code>main.py</code></strong> — CLI composition root. No business logic beyond wiring and presentation.</li>
+        </ul>
+
+        <h2 id="tradeoffs">Design trade-offs</h2>
+        <table class="data">
+          <thead>
+            <tr><th>Decision</th><th>Benefit</th><th>Cost</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mock as default provider</td>
+              <td>CI, offline interviews, deterministic demos</td>
+              <td>Not “live” until you flip env</td>
+            </tr>
+            <tr>
+              <td>Normalize to domain models early</td>
+              <td>Analytics never parse vendor JSON</td>
+              <td>Mapping work per new provider</td>
+            </tr>
+            <tr>
+              <td>pandas at ETL boundary</td>
+              <td>Familiar ops for finance-shaped data</td>
+              <td>Heavier than pure lists for tiny demos</td>
+            </tr>
+            <tr>
+              <td>Simple compound projections</td>
+              <td>Clear, reviewable assumptions</td>
+              <td>Not Monte Carlo / advice-grade</td>
+            </tr>
+            <tr>
+              <td>Browser demo reimplements mock math</td>
+              <td>Pages-safe, zero backend cost</td>
+              <td>Dual maintenance vs single WASM/API host</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="resilience">Error resilience</h2>
+        <ul>
+          <li><strong>Per-symbol isolation</strong> in live clients — one failed ticker does not abort the batch.</li>
+          <li><strong>Retries with backoff</strong> on HTTP/transient failures (<code>retry_with_backoff</code>).</li>
+          <li><strong>Factory fail-fast</strong> with actionable messages (missing API key → use mock).</li>
+          <li><strong>Structured logs</strong> at extract/transform boundaries for operability demos.</li>
+          <li><strong>Degraded path</strong>: always available mock; live providers optional.</li>
+        </ul>
+
+        <h2 id="scalability">Scalability notes</h2>
+        <p>
+          This package is a <em>vertical slice</em>, not a distributed system. The architecture still
+          points at scale-out seams:
+        </p>
+        <ul>
+          <li>Replace in-process client with async workers + rate-limit queue for bulk symbols.</li>
+          <li>Cache layer (TTL files or Redis) in front of free-tier APIs.</li>
+          <li>Analytics can run as a batch job reading parquet of bars; CLI becomes one consumer of many.</li>
+          <li>Snapshot export already produces a JSON artifact suitable for a thin UI service.</li>
+        </ul>
+
+        <h2 id="llm">LLM as accelerator</h2>
+        <p>
+          Scaffolding adapters, tests, and portfolio HTML was accelerated with LLM assistance.
+          The <strong>system boundaries</strong> — adapter interface, pure analytics, config-driven holdings —
+          were architectural decisions first. That split is what makes the demo evaluable and extensible.
+        </p>
+
+        <h2 id="run">Run it</h2>
+        <pre><code>cd demos/finance-dashboard/python
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python -m src.main --demo
+pytest -q
+
+# Live (no key):
+FINANCE_PROVIDER=yfinance python -m src.main --demo</code></pre>
+
+        <h2 id="extend">Where to vibe next</h2>
+        <ol>
+          <li>Add a brokerage CSV import adapter implementing <code>MarketDataClient</code> only for history, plus a separate positions loader.</li>
+          <li>Streamlit app calling <code>run_portfolio_etl</code> + <code>PortfolioAnalytics.snapshot</code>.</li>
+          <li>Wire Alpha Vantage through a tiny Cloudflare Worker to power the browser demo without exposing keys.</li>
+          <li>Add tax-lot accounting in <code>enrich_positions</code> without changing clients.</li>
+        </ol>
+
+        <p style="margin-top: 2rem; color: var(--text-dim); font-size: 0.9rem">
+          Not financial advice. Original demo for portfolio evaluation.
+        </p>
+      </article>
+
+      <aside class="toc">
+        <h4>On this page</h4>
+        <ul>
+          <li><a href="#problem">Problem framing</a></li>
+          <li><a href="#data-flow">Data flow</a></li>
+          <li><a href="#modules">Modules</a></li>
+          <li><a href="#tradeoffs">Trade-offs</a></li>
+          <li><a href="#resilience">Resilience</a></li>
+          <li><a href="#scalability">Scalability</a></li>
+          <li><a href="#llm">LLM role</a></li>
+          <li><a href="#run">Run</a></li>
+          <li><a href="#extend">Extend</a></li>
+        </ul>
+        <a class="btn btn-primary" href="../demos/finance-dashboard/">Live demo</a>
+        <a class="btn btn-ghost" href="../index.html#projects">All projects</a>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>© <span id="year">2026</span> Rob Donohue</span>
+      <a href="../index.html">← Portfolio home</a>
+    </div>
+  </footer>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.documentElement.getAttribute("data-theme") === "light" ? "default" : "dark",
+      securityLevel: "loose",
+    });
+  </script>
+</body>
+</html>

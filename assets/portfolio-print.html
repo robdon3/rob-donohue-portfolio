@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rob Donohue — Portfolio Snapshot (Print / PDF)</title>
+  <style>
+    @page { margin: 1.2cm; }
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #111;
+      line-height: 1.45;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      font-size: 11pt;
+    }
+    h1 { font-size: 22pt; margin: 0 0 0.25rem; }
+    h2 { font-size: 13pt; margin: 1.4rem 0 0.5rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; }
+    h3 { font-size: 11pt; margin: 0.8rem 0 0.25rem; }
+    .sub { color: #444; margin-bottom: 1rem; }
+    .meta { font-size: 9pt; color: #666; }
+    ul { margin: 0.3rem 0 0.6rem 1.2rem; }
+    .box { border: 1px solid #ddd; padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 4px; }
+    .footer { margin-top: 2rem; font-size: 9pt; color: #666; }
+    @media print {
+      .no-print { display: none; }
+      a { color: #000; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <p class="no-print meta">
+    Tip: open this page → Print → Save as PDF. Host the file as
+    <code>assets/Rob-Donohue-Portfolio.pdf</code> for the download button.
+  </p>
+
+  <h1>Rob Donohue</h1>
+  <p class="sub"><strong>Systems Architect</strong> — digital infrastructure, data/ETL, AI &amp; automation, TS-cleared environments</p>
+  <p class="meta">
+    Portfolio: https://robdon3.github.io/rob-donohue-portfolio/<br />
+    GitHub: https://github.com/robdon3/rob-donohue-portfolio
+  </p>
+
+  <h2>Summary</h2>
+  <p>
+    Systems architect focused on modular, scalable, first-principles design.
+    Portfolio showcases original, shareable demo frameworks (not client IP) with
+    API-connected Python systems, clear data flows, and production-shaped engineering practices.
+    LLMs used as implementation accelerators under deliberate architecture.
+  </p>
+
+  <h2>Core competencies</h2>
+  <ul>
+    <li>Solution &amp; systems architecture; MBSE-informed decomposition</li>
+    <li>API integrations, ETL pipelines, error resilience, observability</li>
+    <li>Python (pandas, typed modules, CLI/services), config-driven systems</li>
+    <li>AI/automation patterns (RAG-style retrieval, tool-use boundaries)</li>
+    <li>Financial modeling foundations (advanced Sheets/VBA → Python analytics)</li>
+  </ul>
+
+  <h2>Featured demo: Personal Finance Dashboard</h2>
+  <div class="box">
+    <h3>Architecture</h3>
+    <p>
+      Adapters (mock / yfinance / Alpha Vantage) → ETL normalize &amp; holdings join →
+      Portfolio analytics (valuation, allocation, projections, rough risk metrics) → CLI / browser demo.
+    </p>
+    <h3>Signals for employers</h3>
+    <ul>
+      <li>Swappable providers via interface contract</li>
+      <li>Pure analytics for unit testing without network</li>
+      <li>Logging, retries, env/config separation</li>
+      <li>Live GitHub Pages demo + runnable Python package</li>
+    </ul>
+    <p class="meta">
+      Live: …/demos/finance-dashboard/ · Source: …/demos/finance-dashboard/python/
+    </p>
+  </div>
+
+  <h2>Roadmap demos</h2>
+  <ul>
+    <li>PDF / Document Reconciliation (PyMuPDF, pandas, Streamlit/CLI)</li>
+    <li>Automation Pipeline Framework (multi-source aggregator)</li>
+    <li>Advanced Financial Analyzer (Sheets-class modeling in Python)</li>
+    <li>Lightweight RAG mock (AI infra interview artifact)</li>
+  </ul>
+
+  <h2>Design philosophy</h2>
+  <ul>
+    <li>Independence of modules with clear contracts</li>
+    <li>First principles before frameworks</li>
+    <li>Resilience: timeouts, retries, degraded modes</li>
+    <li>Extensibility: adapters over hard-wiring</li>
+    <li>Proof via runnable demos over private claims</li>
+  </ul>
+
+  <div class="footer">
+    <p>© Rob Donohue — original demos for evaluation. Not financial advice. Update contact details on the live site.</p>
+    <p class="no-print"><button onclick="window.print()">Print / Save as PDF</button></p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+# Default portfolio + symbols for demo runs.
+# Swap weights / symbols freely — core code reads this config.
+
+portfolio:
+  name: "Demo Balanced Portfolio"
+  base_currency: USD
+  cash: 5000.0
+  holdings:
+    - symbol: AAPL
+      shares: 25
+      cost_basis: 165.0
+    - symbol: MSFT
+      shares: 15
+      cost_basis: 320.0
+    - symbol: GOOGL
+      shares: 20
+      cost_basis: 130.0
+    - symbol: BTC-USD
+      shares: 0.15
+      cost_basis: 42000.0
+    - symbol: VTI
+      shares: 40
+      cost_basis: 220.0
+
+market:
+  default_symbols:
+    - AAPL
+    - MSFT
+    - GOOGL
+    - BTC-USD
+    - VTI
+  history_days: 90
+
+analytics:
+  # Simple projection: annual expected return assumption for demo
+  expected_annual_return: 0.07
+  projection_years: 10
+  risk_free_rate: 0.04

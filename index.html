@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rob Donohue — Systems Architect | Demo Portfolio</title>
+  <meta name="description" content="Systems architecture portfolio: original API-connected Python demos for AI infra, solution architecture, and defense tech. Modular, scalable, first-principles design." />
+  <meta name="author" content="Rob Donohue" />
+  <meta name="keywords" content="systems architect, MBSE, ETL, Python, API integration, AI infrastructure, portfolio" />
+  <meta property="og:title" content="Rob Donohue — Systems Architect Portfolio" />
+  <meta property="og:description" content="Original demo frameworks for AI infra and solution architecture roles." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0a0e14" />
+  <link rel="canonical" href="https://robdon3.github.io/rob-donohue-portfolio/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;650&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="nav-brand" href="#top">
+        <span class="dot" aria-hidden="true"></span>
+        rob.donohue / systems
+      </a>
+      <nav>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#about">About</a></li>
+          <li><a href="#skills">Skills</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#philosophy">Philosophy</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="nav-actions">
+        <button type="button" class="btn-icon" id="theme-toggle" aria-label="Toggle theme">☀</button>
+        <a class="btn btn-primary" href="https://github.com/robdon3/rob-donohue-portfolio" target="_blank" rel="noopener">
+          GitHub <span>↗</span>
+        </a>
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="hero-badge">
+            <span>TS-cleared environments · MBSE · API systems</span>
+          </div>
+          <h1>
+            Systems Architect building<br />
+            <span>infrastructure that stands alone</span>
+          </h1>
+          <p class="hero-lead">
+            Rob Donohue — designing robust digital systems: data/ETL pipelines,
+            AI &amp; automation, and modular frameworks you can extend under real constraints.
+            Original demos only. No client IP.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#projects">View demo frameworks</a>
+            <a class="btn btn-ghost" href="demos/finance-dashboard/">Live finance demo</a>
+            <a class="btn btn-ghost" href="#contact">Contact / PDF</a>
+          </div>
+          <div class="hero-meta">
+            <div>
+              <strong>Focus</strong>
+              AI infra · Solution architecture · Defense tech
+            </div>
+            <div>
+              <strong>Stack signal</strong>
+              Python APIs · ETL · Logging · Config-first
+            </div>
+            <div>
+              <strong>Method</strong>
+              First principles + LLM-accelerated build
+            </div>
+          </div>
+        </div>
+        <aside class="arch-card" aria-label="Architecture snapshot">
+          <div class="arch-card-header">
+            <span>system.snapshot</span>
+            <span class="status">resilient</span>
+          </div>
+          <div class="flow-row">
+            <span class="flow-node">sources</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-node accent">adapters</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-node">etl</span>
+          </div>
+          <div class="flow-row">
+            <span class="flow-node">etl</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-node accent">analytics</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-node">views</span>
+          </div>
+          <div class="flow-row">
+            <span class="flow-node">config</span>
+            <span class="flow-arrow">·</span>
+            <span class="flow-node">logging</span>
+            <span class="flow-arrow">·</span>
+            <span class="flow-node">retry / degrade</span>
+          </div>
+          <div class="arch-card-footer">
+            Contract-first modules. Swap mock ↔ live APIs without rewriting core logic.
+            Architecture owns the system; tools accelerate implementation.
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section" id="about">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-label">// about</p>
+          <h2 class="section-title">Background</h2>
+          <p class="section-lead">
+            Systems architect with a track record of designing digital infrastructure
+            under clarity, security, and scale pressure—from MBSE-informed modeling
+            to operational data flows and AI-assisted automation.
+          </p>
+        </div>
+        <div class="skills-grid">
+          <article class="skill-card">
+            <h3><span class="skill-icon">01</span> Infrastructure design</h3>
+            <p>
+              Modular boundaries, interface contracts, and failure modes defined
+              before code volume. Suitability for TS-cleared and regulated contexts.
+            </p>
+          </article>
+          <article class="skill-card">
+            <h3><span class="skill-icon">02</span> Data &amp; ETL</h3>
+            <p>
+              Multi-source aggregation, reconciliation, transformation layers,
+              and observability that makes pipelines operable—not just runnable.
+            </p>
+          </article>
+          <article class="skill-card">
+            <h3><span class="skill-icon">03</span> API Python systems</h3>
+            <p>
+              Recent emphasis: integrations, orchestration, typed clients,
+              backoff/retry, and demos you can re-point at real endpoints.
+            </p>
+          </article>
+          <article class="skill-card">
+            <h3><span class="skill-icon">04</span> Modeling foundations</h3>
+            <p>
+              VBA and advanced Google Sheets work that pushed financial tracking
+              to its limits—now extended into Python analytics frameworks.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section class="section" id="skills">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-label">// stack</p>
+          <h2 class="section-title">Skills &amp; tech stack</h2>
+          <p class="section-lead">
+            Surface area chosen to signal architecture depth for AI infrastructure
+            and solution roles—not a laundry list of every library ever used.
+          </p>
+        </div>
+        <div class="skills-grid">
+          <article class="skill-card">
+            <h3><span class="skill-icon">Py</span> Python systems</h3>
+            <p>Typed modules, packaging-ready layouts, CLI + service entrypoints.</p>
+            <div class="tags">
+              <span class="tag">pandas</span>
+              <span class="tag">httpx / requests</span>
+              <span class="tag">pydantic</span>
+              <span class="tag">logging</span>
+              <span class="tag">pytest</span>
+            </div>
+          </article>
+          <article class="skill-card">
+            <h3><span class="skill-icon">API</span> Integration</h3>
+            <p>Adapter pattern, rate limits, secrets via env, graceful degradation.</p>
+            <div class="tags">
+              <span class="tag">REST</span>
+              <span class="tag">webhooks</span>
+              <span class="tag">retry / circuit</span>
+              <span class="tag">mock modes</span>
+            </div>
+          </article>
+          <article class="skill-card">
+            <h3><span class="skill-icon">ETL</span> Data flows</h3>
+            <p>Extract → normalize → enrich → load with auditability and idempotency in mind.</p>
+            <div class="tags">
+              <span class="tag">pipelines</span>
+              <span class="tag">reconciliation</span>
+              <span class="tag">caching</span>
+              <span class="tag">parquet / CSV</span>
+            </div>
+          </article>
+          <article class="skill-card">
+            <h3><span class="skill-icon">AI</span> Automation</h3>
+            <p>LLM as accelerator inside structured systems—not a black-box monolith.</p>
+            <div class="tags">
+              <span class="tag">RAG patterns</span>
+              <span class="tag">tool use</span>
+              <span class="tag">eval hooks</span>
+              <span class="tag">human-in-loop</span>
+            </div>
+          </article>
+          <article class="skill-card">
+            <h3><span class="skill-icon">MB</span> Architecture</h3>
+            <p>MBSE-informed decomposition, interfaces, and system-of-systems thinking.</p>
+            <div class="tags">
+              <span class="tag">MBSE</span>
+              <span class="tag">interfaces</span>
+              <span class="tag">trade studies</span>
+              <span class="tag">ADRs</span>
+            </div>
+          </article>
+          <article class="skill-card">
+            <h3><span class="skill-icon">UI</span> Delivery</h3>
+            <p>Static sites, Streamlit/CLI demos, GitHub Pages—ship proof early.</p>
+            <div class="tags">
+              <span class="tag">HTML/CSS/JS</span>
+              <span class="tag">Streamlit</span>
+              <span class="tag">Mermaid</span>
+              <span class="tag">Chart.js</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section class="section" id="projects">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-label">// demos</p>
+          <h2 class="section-title">Demo projects</h2>
+          <p class="section-lead">
+            Original frameworks built to be extended: swap APIs, plug real data,
+            keep the architecture. Each entry includes design narrative + runnable code.
+          </p>
+        </div>
+        <div class="projects-grid">
+          <article class="project-card featured">
+            <div>
+              <p class="project-status live">● Live — Python + browser demo</p>
+              <h3>
+                <a href="projects/finance-dashboard.html">Personal Finance Dashboard (API-connected)</a>
+              </h3>
+              <p class="project-desc">
+                Market data adapters (yfinance / Alpha Vantage / mock), ETL normalize,
+                portfolio analytics (allocation, returns, projections), structured logging,
+                and a GitHub Pages–friendly live viz. Production-shaped package layout.
+              </p>
+              <div class="project-meta">
+                <div class="tags">
+                  <span class="tag">Python</span>
+                  <span class="tag">API adapters</span>
+                  <span class="tag">pandas</span>
+                  <span class="tag">ETL</span>
+                  <span class="tag">Chart.js</span>
+                </div>
+              </div>
+            </div>
+            <div class="project-actions">
+              <a class="btn btn-primary" href="demos/finance-dashboard/">Live demo</a>
+              <a class="btn btn-ghost" href="projects/finance-dashboard.html">Architecture</a>
+              <a class="btn btn-ghost" href="https://github.com/robdon3/rob-donohue-portfolio/tree/main/demos/finance-dashboard/python" target="_blank" rel="noopener">Source</a>
+            </div>
+          </article>
+
+          <article class="project-card">
+            <div>
+              <p class="project-status next">○ Next up</p>
+              <h3>PDF / Document Reconciliation Tool</h3>
+              <p class="project-desc">
+                Parse PDFs (PyMuPDF), extract tabular fields, reconcile against source-of-truth
+                DataFrames, report mismatches. CLI + Streamlit workflow optimization demo.
+              </p>
+              <div class="tags">
+                <span class="tag">PyMuPDF</span>
+                <span class="tag">pandas</span>
+                <span class="tag">Streamlit</span>
+                <span class="tag">reconciliation</span>
+              </div>
+            </div>
+            <div class="project-actions">
+              <span class="btn btn-ghost" style="opacity:0.5;cursor:default">Coming soon</span>
+            </div>
+          </article>
+
+          <article class="project-card">
+            <div>
+              <p class="project-status planned">○ Planned</p>
+              <h3>Automation Pipeline Framework</h3>
+              <p class="project-desc">
+                Modular multi-source data aggregator: stages as composable units,
+                error isolation, structured logs, config-driven DAG of steps.
+              </p>
+              <div class="tags">
+                <span class="tag">ETL</span>
+                <span class="tag">orchestration</span>
+                <span class="tag">logging</span>
+                <span class="tag">config</span>
+              </div>
+            </div>
+            <div class="project-actions">
+              <span class="btn btn-ghost" style="opacity:0.5;cursor:default">Planned</span>
+            </div>
+          </article>
+
+          <article class="project-card">
+            <div>
+              <p class="project-status planned">○ Planned</p>
+              <h3>Advanced Financial Analyzer (Python)</h3>
+              <p class="project-desc">
+                Sheets-class financial modeling with pandas: scenario matrices,
+                custom metrics, scripted what-if analysis—beyond cell formulas.
+              </p>
+              <div class="tags">
+                <span class="tag">modeling</span>
+                <span class="tag">pandas</span>
+                <span class="tag">scenarios</span>
+              </div>
+            </div>
+            <div class="project-actions">
+              <span class="btn btn-ghost" style="opacity:0.5;cursor:default">Planned</span>
+            </div>
+          </article>
+
+          <article class="project-card">
+            <div>
+              <p class="project-status planned">○ Planned</p>
+              <h3>Lightweight RAG Mock</h3>
+              <p class="project-desc">
+                Retrieval architecture for AI infra interviews: chunking, embeddings mock,
+                ranking, citation path—without requiring production vector infra.
+              </p>
+              <div class="tags">
+                <span class="tag">RAG</span>
+                <span class="tag">AI infra</span>
+                <span class="tag">eval hooks</span>
+              </div>
+            </div>
+            <div class="project-actions">
+              <span class="btn btn-ghost" style="opacity:0.5;cursor:default">Planned</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PHILOSOPHY -->
+    <section class="section" id="philosophy">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-label">// philosophy</p>
+          <h2 class="section-title">First-principles architecture</h2>
+          <p class="section-lead">
+            Fountainhead-inspired: systems that earn independence through integrity of design—
+            not through layering fashion frameworks.
+          </p>
+        </div>
+        <div class="philosophy-grid">
+          <article class="principle">
+            <p class="principle-num">P01</p>
+            <h3>Independence</h3>
+            <p>Each module has one job and a clear contract. Remove a dependency and the system still degrades gracefully—or fails loudly with a reason.</p>
+          </article>
+          <article class="principle">
+            <p class="principle-num">P02</p>
+            <h3>First principles</h3>
+            <p>Name the data, control, and failure problem before choosing tools. Libraries are implementations of architecture—not substitutes for it.</p>
+          </article>
+          <article class="principle">
+            <p class="principle-num">P03</p>
+            <h3>Resilience</h3>
+            <p>Timeouts, retries with backoff, structured logs, and degraded modes. Operability is a design requirement, not an ops afterthought.</p>
+          </article>
+          <article class="principle">
+            <p class="principle-num">P04</p>
+            <h3>Extensibility</h3>
+            <p>Adapters over hard-wiring. Swap mock for live APIs, change storage backends, extend metrics—without rewriting the spine.</p>
+          </article>
+          <article class="principle">
+            <p class="principle-num">P05</p>
+            <h3>LLM as accelerator</h3>
+            <p>Architecture owns the system. Models speed scaffolding and iteration; they do not replace interface design or trade-off judgment.</p>
+          </article>
+          <article class="principle">
+            <p class="principle-num">P06</p>
+            <h3>Proof over claims</h3>
+            <p>Shareable demos beat private client stories. If it can’t be shown, it can’t be evaluated. Build artifacts hiring teams can run.</p>
+          </article>
+        </div>
+        <blockquote class="quote-block">
+          “I don’t build so that others can say I followed the pattern. I build so the system stands—
+          modular, honest about its limits, and ready to scale where the load actually is.”
+          <cite>— design stance for this portfolio</cite>
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section" id="contact">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-label">// contact</p>
+          <h2 class="section-title">Let’s talk systems</h2>
+        </div>
+        <div class="contact-panel">
+          <div>
+            <p class="section-lead" style="margin:0">
+              Open to roles in AI infrastructure, solution architecture, and defense tech
+              where original systems thinking and API-connected Python matter.
+            </p>
+            <ul class="contact-list">
+              <li>
+                <a href="https://github.com/robdon3" target="_blank" rel="noopener">
+                  GitHub — robdon3
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/robdon3/rob-donohue-portfolio" target="_blank" rel="noopener">
+                  This portfolio repository
+                </a>
+              </li>
+              <li>
+                <a href="mailto:hello@example.com" id="contact-email">
+                  Email — update in index.html
+                </a>
+              </li>
+            </ul>
+            <p style="margin-top:1rem;font-size:0.85rem;color:var(--text-dim)">
+              Replace the placeholder email with your preferred contact. LinkedIn URL can be added the same way.
+            </p>
+          </div>
+          <div class="contact-actions">
+            <a class="btn btn-primary" href="assets/Rob-Donohue-Portfolio.pdf" download>
+              Download portfolio PDF
+            </a>
+            <a class="btn btn-ghost" href="demos/finance-dashboard/">
+              Run live finance demo
+            </a>
+            <a class="btn btn-ghost" href="projects/finance-dashboard.html">
+              Read architecture write-up
+            </a>
+            <p style="font-size:0.8rem;color:var(--text-dim);margin-top:0.5rem">
+              PDF is a printable snapshot of this site’s narrative. Re-export after content updates.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>© <span id="year">2026</span> Rob Donohue · Original demos · Systems architecture portfolio</span>
+      <span class="mono">built for evaluation · extended by design</span>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
