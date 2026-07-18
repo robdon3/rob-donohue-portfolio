@@ -1,6 +1,6 @@
 /**
- * Financial Worksheet OS — browser engine (clean-room synthetic).
- * Mirrors Python: ledger → debt → snapshots → runway → cashflow.
+ * Purpose-built finance workbook — browser engine (synthetic).
+ * Areas: control, journal upsert, holdings, debt, payments testground, paycheck.
  */
 (function () {
   "use strict";
@@ -194,6 +194,99 @@
     return { weekday, id, name: acct ? acct.name : id };
   }
 
+  /**
+   * Same rules as Apps Script copyDataToJournal:
+   * scan dates only → same day overwrite, else append.
+   */
+  function upsertJournal(seed, buckets, asOf) {
+    const rows = (seed.journal_seed || []).map((r) => ({ ...r }));
+    const entry = {
+      as_of: asOf,
+      assets: buckets.assets,
+      liabilities: buckets.liabilities,
+      investments: buckets.investments,
+      net_worth: buckets.net_worth,
+      note: "control surface → journal",
+    };
+    const idx = rows.findIndex((r) => r.as_of === asOf);
+    let action;
+    if (idx >= 0) {
+      rows[idx] = entry;
+      action = "overwrite";
+    } else {
+      rows.push(entry);
+      action = "append";
+    }
+    rows.sort((a, b) => a.as_of.localeCompare(b.as_of));
+    return { rows, action };
+  }
+
+  function runPayments(stack, scenarios) {
+    return (scenarios || []).map((sc) => {
+      const bals = Object.fromEntries(stack.map((f) => [f.account_id, f.balance]));
+      const meta = Object.fromEntries(stack.map((f) => [f.account_id, f]));
+      let order = [...stack];
+      let budget = sc.budget || 0;
+      const allocations = [];
+
+      if (sc.strategy === "avalanche") {
+        order = [...stack].sort((a, b) => (b.apr_pct || 0) - (a.apr_pct || 0));
+      } else if (sc.strategy === "snowball") {
+        order = [...stack].sort((a, b) => a.balance - b.balance);
+      }
+
+      if (sc.strategy === "directed") {
+        const directed = sc.directed || {};
+        for (const [id, amt] of Object.entries(directed)) {
+          if (bals[id] == null) continue;
+          const pay = Math.min(amt, bals[id], budget);
+          bals[id] -= pay;
+          budget -= pay;
+          allocations.push({
+            name: meta[id].name,
+            amount: pay,
+            remaining: bals[id],
+            rule: "directed",
+          });
+        }
+      } else if (sc.strategy === "weighted") {
+        const total = Object.values(bals).reduce((s, v) => s + v, 0) || 1;
+        for (const f of order) {
+          const pay = Math.min((sc.budget || 0) * (bals[f.account_id] / total), bals[f.account_id]);
+          bals[f.account_id] -= pay;
+          allocations.push({
+            name: f.name,
+            amount: pay,
+            remaining: bals[f.account_id],
+            rule: "weighted",
+          });
+        }
+      } else {
+        let rem = sc.budget || 0;
+        for (const f of order) {
+          if (rem <= 0) break;
+          const pay = Math.min(rem, bals[f.account_id]);
+          bals[f.account_id] -= pay;
+          rem -= pay;
+          allocations.push({
+            name: f.name,
+            amount: pay,
+            remaining: bals[f.account_id],
+            rule: sc.strategy,
+          });
+        }
+      }
+
+      return {
+        name: sc.name,
+        description: sc.description || sc.strategy,
+        total_payment: allocations.reduce((s, a) => s + a.amount, 0),
+        projected_total_debt: Object.values(bals).reduce((s, v) => s + v, 0),
+        allocations,
+      };
+    });
+  }
+
   function setText(id, text, cls) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -304,7 +397,7 @@
   }
 
   function renderPhone(state) {
-    const { buckets, accounts, stack, seed } = state;
+    const { buckets, accounts } = state;
     fillTable(
       "#phone-ytd tbody",
       `<tr><td>Assets</td><td>${money(buckets.assets)}</td></tr>
@@ -334,6 +427,76 @@
         .map(([k, v]) => `<tr><td class="mono">${k}</td><td>${money(v)}</td></tr>`)
         .join("")
     );
+  }
+
+  function renderAreas(areas) {
+    fillTable(
+      "#areas-table tbody",
+      (areas || [])
+        .map(
+          (a) => `<tr>
+          <td><strong>${a.name}</strong></td>
+          <td>${a.purpose}</td>
+        </tr>`
+        )
+        .join("")
+    );
+  }
+
+  function renderJournal(journal) {
+    const { rows, action } = journal;
+    const el = document.getElementById("journal-action");
+    if (el) {
+      el.textContent =
+        "Last action: " +
+        action +
+        " · same day → overwrite, new day → append (column-A date authority)";
+    }
+    fillTable(
+      "#journal-table tbody",
+      rows
+        .map(
+          (r) => `<tr>
+          <td class="mono">${r.as_of}</td>
+          <td>${money(r.assets)}</td>
+          <td class="down">${money(r.liabilities)}</td>
+          <td>${money(r.investments)}</td>
+          <td>${money(r.net_worth)}</td>
+          <td>${r.note || ""}</td>
+        </tr>`
+        )
+        .join("")
+    );
+  }
+
+  function renderPayments(results) {
+    const host = document.getElementById("payments-host");
+    if (!host) return;
+    host.innerHTML = results
+      .map((sc) => {
+        const rows = sc.allocations
+          .map(
+            (a) => `<tr>
+              <td>${a.name}</td>
+              <td>${money(a.amount)}</td>
+              <td>${money(a.remaining)}</td>
+              <td class="mono">${a.rule}</td>
+            </tr>`
+          )
+          .join("");
+        return `<div style="margin-bottom:1.25rem">
+          <h4 style="font-size:0.95rem;margin-bottom:0.35rem">${sc.name}
+            <span style="color:var(--text-dim);font-weight:400"> · paid ${money(sc.total_payment)}
+            · projected debt ${money(sc.projected_total_debt)}</span>
+          </h4>
+          <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem">${sc.description || ""}</p>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th>Facility</th><th>Amount</th><th>Remaining</th><th>Rule</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table></div>
+        </div>`;
+      })
+      .join("");
   }
 
   function charts(state) {
@@ -448,8 +611,8 @@
     const rw = runway(seed, holdings);
     const cf = cashflow(seed, scenario);
     const card = cardOfDay(seed, asOf);
-
-    // recompute account balances cleanly
+    const journal = upsertJournal(seed, buckets, asOf);
+    const payments = runPayments(stack, seed.payments_testground);
     const accountsFinal = rollupAccounts(seed, holdings);
 
     const state = {
@@ -462,11 +625,13 @@
       rw,
       cf,
       card,
+      journal,
+      payments,
     };
 
-    log("worksheet engine — synthetic persona " + seed.persona_name, "ok");
+    log("workbook engine — " + seed.persona_name, "ok");
     log(
-      `buckets NW=${buckets.net_worth.toFixed(2)} debt_facilities=${stack.length} scenario=${cf.scenario}`,
+      `journal ${journal.action} · NW=${buckets.net_worth.toFixed(2)} · debt=${stack.length} · scenario=${cf.scenario}`,
       "info"
     );
 
@@ -475,11 +640,14 @@
     document.getElementById("disclaimer-banner") &&
       (document.getElementById("disclaimer-banner").textContent = seed.disclaimer);
 
+    renderAreas(seed.areas);
     renderCockpit(state);
     renderAccounts(accountsFinal);
     renderHoldings(holdings);
     renderDebt(stack);
     renderCashflow(cf);
+    renderJournal(journal);
+    renderPayments(payments);
     renderPhone(state);
     charts(state);
   }
@@ -490,7 +658,7 @@
     });
     document.getElementById("run-demo")?.addEventListener("click", run);
     document.getElementById("scenario-select")?.addEventListener("change", run);
-    switchTab("cockpit");
+    switchTab("areas");
     run();
   });
 })();

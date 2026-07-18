@@ -1,14 +1,37 @@
 # =============================================================================
-# CLEAN-ROOM SYNTHETIC DATA ONLY
-# Persona: "Jordan Lee" — fictional household for architecture demos.
-# No real balances, institutions fingerprints, or personal PII.
-# Swap numbers freely; structure mirrors a multi-tab financial worksheet OS.
+# SYNTHETIC ONLY — fictional numbers for a public demo.
+# Structure mirrors a purpose-built personal workbook: control surface, journal,
+# holdings, debt, payments testground, paycheck. Not a product pitch.
 # =============================================================================
 
 persona:
-  name: "Jordan Lee (Demo Household)"
+  name: "Demo workbook (synthetic)"
   as_of: "2026-07-18"
-  disclaimer: "Synthetic data for portfolio evaluation. Not real finances."
+  disclaimer: "Synthetic numbers only. Shows structure and method — not real finances."
+
+# What each area is for (this is the design — surfaces with jobs)
+areas:
+  - id: control
+    name: Financial Sheet
+    purpose: "Today's totals, limits, debt clocks, directives. What I need to see."
+  - id: journal
+    name: Journal
+    purpose: "Daily snapshot log. Upsert by date — re-run safe. History I can trust."
+  - id: holdings
+    name: Holdings
+    purpose: "Line-level truth: account × asset × qty × mark."
+  - id: debt
+    name: Debt stack
+    purpose: "Facilities, utilization, payoff clocks. Order and pressure, not vibes."
+  - id: payments
+    name: Payments testground
+    purpose: "Sandbox payment strategies before they hit the live ledger."
+  - id: paycheck
+    name: Paycheck
+    purpose: "Waterfall of net income into buckets. Scenario toggles."
+  - id: phone
+    name: Phone view
+    purpose: "Same model, compressed for glance / mobile."
 
 # Account control plane
 accounts:
@@ -268,8 +291,8 @@ cashflow:
       debt_extra: 0.0
 
 ops_policy:
-  notes: "Stay the course. Synthetic market directive for demo only."
-  market_directive: "Monitor cycle; rebalance quarterly. Not advice."
+  notes: "Methodical check-in. Synthetic directive for demo only."
+  market_directive: "Rebalance on schedule; no chase. Not advice."
   card_of_day:
     Monday: card_gamma
     Tuesday: card_alpha
@@ -279,7 +302,42 @@ ops_policy:
     Saturday: card_gamma
     Sunday: card_gamma
 
+# Seed Journal rows (as if prior copyDataToJournal runs already landed)
+journal_seed:
+  - as_of: "2026-07-10"
+    assets: 14100
+    liabilities: -15110
+    investments: 43301
+    note: "ATH-ish day"
+  - as_of: "2026-07-15"
+    assets: 13800
+    liabilities: -15200
+    investments: 42800
+    note: ""
+  - as_of: "2026-07-17"
+    assets: 13900
+    liabilities: -15110
+    investments: 43000
+    note: "pre-today"
+
+# Payments testground scenarios (try before you apply)
+payments_testground:
+  - name: avalanche_1k
+    strategy: avalanche
+    budget: 1000
+    description: "Throw $1k at highest APR first"
+  - name: snowball_1k
+    strategy: snowball
+    budget: 1000
+    description: "Throw $1k at smallest balance first"
+  - name: directed_split
+    strategy: directed
+    budget: 1000
+    description: "Fixed split — loan + alpha card"
+    directed:
+      personal_loan: 600
+      card_alpha: 400
+
 market:
-  # Optional: re-price stock/crypto holdings via market client
   mark_to_market: false
   provider: mock

@@ -143,3 +143,8 @@ class WorksheetBundle(BaseModel):
     scenarios: List[dict]
     ops: dict
     buckets: dict
+    # Purpose-built areas (not marketing modules — work surfaces)
+    journal: List[dict] = []
+    journal_action: Optional[str] = None  # overwrite | append from last upsert
+    payments_testground: List[dict] = []
+    areas: List[dict] = []  # declared purpose of each surface

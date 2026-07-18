@@ -103,9 +103,17 @@ def run_worksheet_cli(args: argparse.Namespace) -> int:
     bundle = run_worksheet(config_path=args.config)
     c = bundle.cockpit
 
-    console.rule("[bold cyan]Financial Worksheet OS[/bold cyan] — clean-room synthetic")
+    console.rule("[bold cyan]Purpose-built finance workbook[/bold cyan] — synthetic demo")
     console.print(f"[bold]{bundle.persona_name}[/bold]")
     console.print(f"[dim]{bundle.disclaimer}[/dim]\n")
+
+    if bundle.areas:
+        areas = Table(title="Areas (each has a job)")
+        areas.add_column("area")
+        areas.add_column("purpose")
+        for a in bundle.areas:
+            areas.add_row(str(a.get("name")), str(a.get("purpose")))
+        console.print(areas)
 
     console.print(
         f"As of [cyan]{c.as_of}[/cyan]  |  "
@@ -192,6 +200,43 @@ def run_worksheet_cli(args: argparse.Namespace) -> int:
     if len(bundle.holdings) > 12:
         hold.add_row("…", f"+{len(bundle.holdings) - 12} more", "", "", "", "", "")
     console.print(hold)
+
+    # Journal (Apps Script pattern)
+    jtab = Table(title=f"Journal (last action: {bundle.journal_action})")
+    for col in ("as_of", "assets", "liabilities", "investments", "net_worth", "note"):
+        jtab.add_column(col)
+    for r in bundle.journal[-6:]:
+        jtab.add_row(
+            str(r.get("as_of")),
+            money(r.get("assets")),
+            money(r.get("liabilities")),
+            money(r.get("investments")),
+            money(r.get("net_worth")),
+            str(r.get("note") or ""),
+        )
+    console.print(jtab)
+    console.print(f"[dim]{bundle.ops.get('automation', '')}[/dim]")
+
+    # Payments testground
+    if bundle.payments_testground:
+        for sc in bundle.payments_testground:
+            pt = Table(title=f"Payments testground · {sc['name']} ({money(sc['total_payment'])})")
+            pt.add_column("facility")
+            pt.add_column("amount")
+            pt.add_column("remaining")
+            pt.add_column("rule")
+            for a in sc.get("allocations", []):
+                pt.add_row(
+                    str(a.get("name")),
+                    money(a.get("amount")),
+                    money(a.get("remaining")),
+                    str(a.get("rule")),
+                )
+            console.print(pt)
+            console.print(
+                f"  → projected total debt {money(sc.get('projected_total_debt'))}  "
+                f"[dim]{sc.get('description', '')}[/dim]"
+            )
 
     if args.export_json:
         args.export_json.parent.mkdir(parents=True, exist_ok=True)

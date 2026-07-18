@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>How I Architected This — Financial Worksheet OS | Rob Donohue</title>
-  <meta name="description" content="Architecture write-up: clean-room Financial Worksheet OS — multi-view ledger, debt, snapshots, runway, cashflow. Synthetic data only." />
+  <title>How it's built — Personal finance control system | Rob Donohue</title>
+  <meta name="description" content="How the purpose-built finance workbook is structured: areas with jobs, Journal upsert, payments testground. Synthetic demo only." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -36,11 +36,12 @@
   <div class="container">
     <header class="page-hero">
       <p class="breadcrumb"><a href="../index.html">Home</a> / projects / finance-dashboard</p>
-      <h1>How I Architected This</h1>
+      <h1>How it's built</h1>
       <p class="lead">
-        <strong>Financial Worksheet OS</strong> — a clean-room, multi-view personal finance ledger system.
-        Inspired by advanced spreadsheet practice (cockpit, debt clocks, runway, paycheck waterfall)
-        but reimplemented as modular Python + a GitHub Pages UI with <em>synthetic data only</em>.
+        This is not a generic “dashboard product.” It’s a public, synthetic reconstruction of how I
+        design personal finance tooling: <strong>purpose-built areas</strong>, custom rollups,
+        automation that matches how I actually work, and a payments sandbox so strategy is tested
+        before it hits the live ledger.
       </p>
       <div class="hero-cta" style="margin-top: 1rem">
         <a class="btn btn-primary" href="../demos/finance-dashboard/">Open live demo</a>
@@ -50,161 +51,127 @@
 
     <div class="content-grid">
       <article class="prose">
-        <h2 id="problem">Problem framing</h2>
+        <h2 id="why">Why it looks like this</h2>
         <p>
-          Power users often push Google Sheets past comfort: dual grain (accounts vs holdings),
-          liability-first debt stacks, ATH/ATL time series, expense runway, paycheck waterfalls,
-          and operational policy (“which card today”). That is a <strong>system</strong>, not a chart.
+          I am methodical about this because it has to look good to me and show me what I need —
+          and how to do it. Every sheet / area has a job. Formulas and scripts are custom because
+          the defaults don’t match the decisions I make.
         </p>
         <p>
-          This demo answers: <strong>how do you decompose a worksheet-class finance OS into
-          testable modules with clear contracts—without publishing real personal data?</strong>
-        </p>
-        <p>
-          Constraint: public portfolio artifact. Solution: clean-room synthetic household
-          (“Jordan Lee”) with the same <em>shapes</em> as a mature worksheet, none of the secrets.
+          The real workbook is private. This demo uses fictional numbers so the structure and the
+          method are evaluable without publishing personal data.
         </p>
 
-        <h2 id="data-flow">Data flow</h2>
+        <h2 id="areas">Areas with jobs</h2>
+        <table class="data">
+          <thead><tr><th>Area</th><th>Job</th></tr></thead>
+          <tbody>
+            <tr><td>Financial Sheet (control)</td><td>Today’s totals, limits, clocks, directives — the view I check first</td></tr>
+            <tr><td>Journal</td><td>Daily snapshot history I can trust; re-run safe</td></tr>
+            <tr><td>Holdings</td><td>Line-level truth: account × asset × qty × mark</td></tr>
+            <tr><td>Debt stack</td><td>Facilities, utilization, payoff pressure</td></tr>
+            <tr><td>Payments testground</td><td>Try payment strategies without touching the live ledger</td></tr>
+            <tr><td>Paycheck</td><td>Waterfall of net into buckets; scenario toggles</td></tr>
+            <tr><td>Phone view</td><td>Same model, compressed</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="journal">Journal automation (Apps Script pattern)</h2>
+        <p>
+          In the real Sheets workbook, Apps Script copies the control row into a Journal sheet.
+          The rules are deliberate:
+        </p>
+        <ol>
+          <li>Read today’s snapshot from the control surface.</li>
+          <li>Scan <strong>column A only</strong> for dates (other columns may have formulas — ignore them for “last row”).</li>
+          <li>If today’s date already exists → <strong>overwrite</strong> that row.</li>
+          <li>Else → <strong>append</strong> after the last real date row.</li>
+        </ol>
+        <p>
+          That makes the journal re-runnable. One day, one truth row. The Python module
+          <code>journal/daily.py</code> implements the same contract. Reference copy of the script:
+          <code>automation/copyDataToJournal.gs.js</code>.
+        </p>
         <div class="mermaid-wrap">
           <pre class="mermaid">
-flowchart TB
-  YAML[synthetic_household.yaml] --> ENG[worksheet.engine]
-  ENG --> LED[ledger]
-  ENG --> DEBT[debt.stack]
-  ENG --> SNAP[snapshots.history]
-  ENG --> RUN[runway.fund]
-  ENG --> CF[cashflow.waterfall]
-  LED --> BUCKETS[assets / investments / liabilities]
-  BUCKETS --> SNAP
-  SNAP --> COCKPIT[Cockpit KPIs]
-  DEBT --> STACK[Debt facilities]
-  RUN --> RW[Runway status]
-  CF --> WF[Paycheck + scenarios]
-  ENG --> BUNDLE[WorksheetBundle JSON]
-  BUNDLE --> CLI[Rich CLI]
-  BUNDLE --> UI[Browser multi-tab demo]
-  MKT[Market adapters optional] -.->|mark-to-market holdings| LED
+flowchart LR
+  CTRL[Control surface totals] --> SCRIPT[copyDataToJournal / journal.upsert]
+  SCRIPT --> SCAN[Scan date column only]
+  SCAN -->|same day| OW[Overwrite row]
+  SCAN -->|new day| AP[Append row]
+  OW --> J[(Journal history)]
+  AP --> J
           </pre>
         </div>
 
-        <h2 id="views">Multi-view surface map</h2>
-        <table class="data">
-          <thead>
-            <tr><th>View</th><th>Job</th><th>Module</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Cockpit</td><td>NW, ATH/ATL, YTD, daily Δ, A/D, runway, card-of-day</td><td>snapshots + ledger + ops</td></tr>
-            <tr><td>Accounts</td><td>Control plane balances, limits, utilization</td><td>ledger</td></tr>
-            <tr><td>Holdings</td><td>Data plane: account × asset × ticker × type</td><td>ledger</td></tr>
-            <tr><td>Debt stack</td><td>% of debt, APR, payoff clocks</td><td>debt</td></tr>
-            <tr><td>Paycheck</td><td>Biweekly waterfall + scenarios</td><td>cashflow</td></tr>
-            <tr><td>Phone</td><td>Same model, compressed projection</td><td>UI only</td></tr>
-          </tbody>
-        </table>
+        <h2 id="payments">Payments testground</h2>
+        <p>
+          Separate from the live debt balances. You set a budget and a rule (avalanche, snowball,
+          directed split). You see remaining balances. Nothing is applied until I decide it is.
+          In the real workbook this is a purpose-built area; here it’s a module with the same idea.
+        </p>
 
-        <h2 id="modules">Module breakdown</h2>
+        <h2 id="flow">Data flow</h2>
+        <div class="mermaid-wrap">
+          <pre class="mermaid">
+flowchart TB
+  CFG[synthetic config] --> ENG[workbook engine]
+  ENG --> LED[ledger]
+  ENG --> DEBT[debt stack]
+  ENG --> SNAP[snapshot history]
+  ENG --> RUN[runway]
+  ENG --> CF[paycheck waterfall]
+  LED --> CTRL[control totals]
+  CTRL --> JRN[journal upsert]
+  DEBT --> PAY[payments testground]
+  ENG --> BUNDLE[bundle → CLI / UI]
+          </pre>
+        </div>
+
+        <h2 id="modules">Code map</h2>
         <ul>
-          <li><strong><code>ledger/</code></strong> — Accounts + holdings; bucket rollups; home sleeves.</li>
-          <li><strong><code>debt/</code></strong> — Facilities from liability lines; utilization; rough payoff months.</li>
-          <li><strong><code>snapshots/</code></strong> — Append-style history; ATH/ATL/YTD/daily derived, not cell overwrites.</li>
-          <li><strong><code>runway/</code></strong> — N-month expense fund target, deficit, catch-up rates.</li>
-          <li><strong><code>cashflow/</code></strong> — Income cadence → waterfall buckets → scenario multipliers.</li>
-          <li><strong><code>worksheet/</code></strong> — Composition root → <code>WorksheetBundle</code>.</li>
-          <li><strong><code>clients/</code></strong> — Optional market adapters (still available via <code>--market-demo</code>).</li>
+          <li><code>ledger/</code> — accounts + holdings, rollups</li>
+          <li><code>journal/</code> — date-keyed upsert (script twin)</li>
+          <li><code>debt/</code> — stack, utilization, payoff clocks</li>
+          <li><code>payments/</code> — strategy sandbox</li>
+          <li><code>snapshots/</code> — ATH / ATL / YTD from history</li>
+          <li><code>runway/</code> — expense fund target / catch-up</li>
+          <li><code>cashflow/</code> — paycheck waterfall</li>
+          <li><code>clients/</code> — optional market marks (<code>--market-demo</code>)</li>
         </ul>
 
-        <h2 id="tradeoffs">Design trade-offs</h2>
-        <table class="data">
-          <thead>
-            <tr><th>Decision</th><th>Benefit</th><th>Cost</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Synthetic-only public config</td>
-              <td>Safe for GitHub / interviews</td>
-              <td>Not your live personal sheet</td>
-            </tr>
-            <tr>
-              <td>Dual grain (accounts + holdings)</td>
-              <td>Matches real worksheet power use</td>
-              <td>More models than “ticker list”</td>
-            </tr>
-            <tr>
-              <td>Snapshots as time series</td>
-              <td>ATH/ATL integrity; auditable</td>
-              <td>Must append, not overwrite</td>
-            </tr>
-            <tr>
-              <td>Browser reimplements engine</td>
-              <td>Pages-safe zero backend</td>
-              <td>Dual maintenance vs single API</td>
-            </tr>
-            <tr>
-              <td>Points/miles as assets</td>
-              <td>Reflects real household wealth forms</td>
-              <td>Valuation is subjective by nature</td>
-            </tr>
-            <tr>
-              <td>Simple payoff / runway math</td>
-              <td>Reviewable assumptions</td>
-              <td>Not a lending or advice product</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h2 id="resilience">Error resilience &amp; privacy</h2>
+        <h2 id="tradeoffs">Trade-offs I accept</h2>
         <ul>
-          <li><strong>Public path never reads real Drive/Sheets data</strong> — config is synthetic YAML/JS seed.</li>
-          <li>Market adapters isolate network failure (unchanged from v1 market demo).</li>
-          <li>Per-module pure functions where possible for unit tests without I/O.</li>
-          <li>CLI fail-fast with structured logs at composition boundaries.</li>
+          <li><strong>Custom over generic</strong> — slower to build, faster to use daily.</li>
+          <li><strong>Dual grain</strong> (accounts + holdings) — more structure, less ambiguity.</li>
+          <li><strong>Synthetic public demo</strong> — safe, but not the live sheet.</li>
+          <li><strong>Browser reimplements rules</strong> — works on GitHub Pages with no backend.</li>
+          <li><strong>Simple payoff / runway math</strong> — clear assumptions, not a bank product.</li>
         </ul>
 
-        <h2 id="product">Product maturation path</h2>
-        <p>If this became a product (separate from the portfolio artifact):</p>
-        <ol>
-          <li><strong>Local-first engine</strong> — same modules, encrypted SQLite, CSV/Sheets import of <em>structure</em>.</li>
-          <li><strong>Policy layer</strong> — card-of-day and notes as first-class ops, not cells.</li>
-          <li><strong>Wedge</strong> — debt + liquidity + runway for spreadsheet power users (not another pie-chart broker app).</li>
-          <li><strong>Optional mark-to-market</strong> — existing adapters price holdings without owning the ledger core.</li>
-        </ol>
-
-        <h2 id="run">Run it</h2>
+        <h2 id="run">Run</h2>
         <pre><code>cd demos/finance-dashboard/python
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m src.main --worksheet
-pytest -q
-
-# optional market slice
-python -m src.main --market-demo</code></pre>
-
-        <h2 id="extend">Where to vibe next</h2>
-        <ol>
-          <li>CSV import adapter → <code>load_ledger_from_config</code> shape.</li>
-          <li>Streamlit multi-tab shell over <code>run_worksheet()</code>.</li>
-          <li>Tax-lot or debt avalanche optimizer on <code>debt_stack</code>.</li>
-          <li>Export <code>WorksheetBundle</code> as the contract for a future mobile client.</li>
-        </ol>
+pytest -q</code></pre>
 
         <p style="margin-top: 2rem; color: var(--text-dim); font-size: 0.9rem">
-          Synthetic data only. Not financial advice. Original architecture demo.
+          Synthetic data only. Not financial advice.
         </p>
       </article>
 
       <aside class="toc">
         <h4>On this page</h4>
         <ul>
-          <li><a href="#problem">Problem framing</a></li>
-          <li><a href="#data-flow">Data flow</a></li>
-          <li><a href="#views">Views</a></li>
-          <li><a href="#modules">Modules</a></li>
+          <li><a href="#why">Why</a></li>
+          <li><a href="#areas">Areas</a></li>
+          <li><a href="#journal">Journal</a></li>
+          <li><a href="#payments">Payments</a></li>
+          <li><a href="#flow">Flow</a></li>
+          <li><a href="#modules">Code map</a></li>
           <li><a href="#tradeoffs">Trade-offs</a></li>
-          <li><a href="#resilience">Privacy</a></li>
-          <li><a href="#product">Product path</a></li>
           <li><a href="#run">Run</a></li>
-          <li><a href="#extend">Extend</a></li>
         </ul>
         <a class="btn btn-primary" href="../demos/finance-dashboard/">Live demo</a>
         <a class="btn btn-ghost" href="../index.html#projects">All projects</a>

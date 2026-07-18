@@ -31,28 +31,28 @@ Hiring managers and technical leaders evaluating systems architecture depth thro
 
 | # | Project | Status | Focus |
 |---|---------|--------|--------|
-| 1 | [Financial Worksheet OS](demos/finance-dashboard/) | ✅ Live | Multi-view ledger (cockpit, debt, runway, cashflow) + optional market adapters |
+| 1 | [Finance control system](demos/finance-dashboard/) | ✅ Live | Purpose-built areas, Journal upsert, payments testground (synthetic) |
 | 2 | PDF / Document Reconciliation | 🔜 Next | Parse → extract → reconcile (PyMuPDF, pandas) |
 | 3 | Automation Pipeline Framework | Planned | Multi-source aggregator, ETL, logging |
 | 4 | Advanced Financial Analyzer | Planned | Sheets-class modeling in Python |
 | 5 | Lightweight RAG Mock | Planned | Retrieval patterns for AI infra roles |
 | 6 | Job Tracker (API) | Planned | Multi-API orchestration |
 
-### Financial Worksheet OS (ready)
+### Personal finance control system (ready)
 
-Clean-room synthetic multi-view finance system (not real personal data).
+Purpose-built workbook structure (synthetic numbers): control surface, Journal automation,
+debt, payments testground, paycheck. Not real personal data.
 
 ```bash
 cd demos/finance-dashboard/python
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m src.main --worksheet
-# optional market slice:
-python -m src.main --market-demo
+python -m src.main --market-demo   # optional market adapters
 ```
 
-- **Live browser demo:** [demos/finance-dashboard/](demos/finance-dashboard/)
-- **Architecture write-up:** [projects/finance-dashboard.html](projects/finance-dashboard.html)
+- **Live demo:** [demos/finance-dashboard/](demos/finance-dashboard/)
+- **How it's built:** [projects/finance-dashboard.html](projects/finance-dashboard.html)
 
 ## Site Stack
 

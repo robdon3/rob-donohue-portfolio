@@ -16,7 +16,7 @@ def test_load_synthetic_config():
     cfg = load_synthetic_config()
     assert "accounts" in cfg
     assert "holdings" in cfg
-    assert "Jordan" in cfg["persona"]["name"] or "Demo" in cfg["persona"]["name"]
+    assert "Demo" in cfg["persona"]["name"] or "synthetic" in cfg["persona"]["name"].lower()
 
 
 def test_ledger_buckets_positive_nw_possible():

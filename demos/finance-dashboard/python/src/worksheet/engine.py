@@ -1,7 +1,8 @@
 """
-Worksheet OS orchestrator — composes ledger, debt, snapshots, runway, cashflow.
+Workbook engine — composes purpose-built areas into one bundle.
 
-Single entrypoint used by CLI and JSON export for the browser demo seed.
+Control surface → journal upsert → debt → runway → cashflow → payments sandbox.
+Market adapters stay optional (--market-demo). This path is the personal system.
 """
 
 from __future__ import annotations
@@ -12,8 +13,10 @@ from typing import Any, Dict, Optional
 
 from ..cashflow.waterfall import build_cashflow, run_scenarios
 from ..debt.stack import build_debt_stack
+from ..journal.daily import journal_from_rows, upsert_daily_snapshot
 from ..ledger.core import load_ledger_from_config
 from ..models.worksheet import WorksheetBundle
+from ..payments.testground import run_payment_scenarios
 from ..runway.fund import compute_runway
 from ..snapshots.history import SnapshotStore, cockpit_from_history
 from ..utils.logging_setup import get_logger
@@ -32,13 +35,13 @@ def _load_yaml(path: Path) -> Dict[str, Any]:
         return yaml.safe_load(text) or {}
     except ImportError as exc:
         raise ImportError(
-            "PyYAML is required for worksheet config. pip install pyyaml"
+            "PyYAML is required for workbook config. pip install pyyaml"
         ) from exc
 
 
 def load_synthetic_config(path: Optional[Path] = None) -> Dict[str, Any]:
     cfg_path = path or DEFAULT_SYNTHETIC
-    logger.info("loading synthetic household config %s", cfg_path)
+    logger.info("loading synthetic workbook config %s", cfg_path)
     return _load_yaml(cfg_path)
 
 
@@ -47,10 +50,9 @@ def run_worksheet(
     config_path: Optional[Path] = None,
     as_of: Optional[date] = None,
 ) -> WorksheetBundle:
-    """Build full multi-view worksheet bundle from synthetic (or provided) config."""
+    """Build full multi-area workbook bundle from synthetic (or provided) config."""
     cfg = config if config is not None else load_synthetic_config(config_path)
     as_of = as_of or date.today()
-    persona = cfg.get("persona", {})
 
     ledger = load_ledger_from_config(cfg)
     buckets = ledger.bucket_totals()
@@ -64,8 +66,23 @@ def run_worksheet(
     cashflow = build_cashflow(cfg.get("cashflow", {}))
     scenarios = run_scenarios(cfg.get("cashflow", {}))
 
+    # Journal: load seed, then upsert today's control totals (Apps Script pattern)
+    journal = journal_from_rows(cfg.get("journal_seed") or [])
+    journal_action = upsert_daily_snapshot(
+        journal,
+        as_of=as_of,
+        assets=buckets["assets"],
+        liabilities=buckets["liabilities"],
+        investments=buckets["investments"],
+        note="control surface → journal",
+    )
+
+    payments = run_payment_scenarios(
+        debt,
+        cfg.get("payments_testground") or [],
+    )
+
     ops = cfg.get("ops_policy", {})
-    # Resolve card-of-day name for weekday
     weekday = as_of.strftime("%A")
     card_id = (ops.get("card_of_day") or {}).get(weekday)
     card_name = None
@@ -79,6 +96,8 @@ def run_worksheet(
         if df is None or df.empty:
             return []
         return df.where(df.notna(), None).to_dict(orient="records")
+
+    areas = cfg.get("areas") or []
 
     bundle = WorksheetBundle(
         persona_name=ledger.persona_name,
@@ -97,14 +116,23 @@ def run_worksheet(
             "card_of_day_id": card_id,
             "card_of_day_name": card_name,
             "weekday": weekday,
+            "automation": (
+                "Journal upsert by date (overwrite if same day, else append). "
+                "Same rules as Sheets Apps Script copyDataToJournal."
+            ),
         },
         buckets={**buckets, "home": home},
+        journal=journal.to_records(),
+        journal_action=journal_action,
+        payments_testground=payments,
+        areas=areas,
     )
     logger.info(
-        "worksheet complete persona=%s NW=%.2f holdings=%s",
+        "workbook complete persona=%s NW=%.2f journal=%s action=%s",
         bundle.persona_name,
         cockpit.net_worth,
-        len(bundle.holdings),
+        len(bundle.journal),
+        journal_action,
     )
     return bundle
 

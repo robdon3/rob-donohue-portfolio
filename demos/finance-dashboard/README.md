@@ -1,22 +1,20 @@
-# Financial Worksheet OS
+# Personal finance control system (demo)
 
 | Artifact | Link |
 |----------|------|
-| **Live demo (Pages)** | [index.html](./index.html) |
-| **Architecture write-up** | [../../projects/finance-dashboard.html](../../projects/finance-dashboard.html) |
-| **Python package** | [python/](./python/) |
-| **Synthetic config** | [python/config/synthetic_household.yaml](./python/config/synthetic_household.yaml) |
+| **Live demo** | [index.html](./index.html) |
+| **How it's built** | [../../projects/finance-dashboard.html](../../projects/finance-dashboard.html) |
+| **Python** | [python/](./python/) |
+| **Apps Script pattern** | [python/automation/copyDataToJournal.gs.js](./python/automation/copyDataToJournal.gs.js) |
 
-## Clean-room notice
+## What this is
 
-Public demo uses a **fictional household** (Jordan Lee).  
-Do not commit real balances, payroll, or institution fingerprints to this repo.
+Purpose-built areas with jobs: control surface, Journal (upsert by date), holdings, debt,
+**payments testground**, paycheck, phone view.
 
-## Views
+Public numbers are **synthetic**. Real workbook stays private.
 
-Cockpit · Accounts · Holdings · Debt stack · Paycheck · Phone
-
-## Quick start
+## Run
 
 ```bash
 cd python && pip install -r requirements.txt

@@ -1,27 +1,35 @@
 /**
- * CLEAN-ROOM SYNTHETIC DATA ONLY
- * Persona: Jordan Lee (Demo Household) — fictional.
- * Mirrors config/synthetic_household.yaml for offline GitHub Pages.
- * Do not replace with real personal finances in this public repo.
+ * SYNTHETIC ONLY — fictional numbers for a public demo.
+ * Structure = purpose-built workbook areas + journal rules + payments sandbox.
+ * Do not replace with real personal finances in this repo.
  */
 window.WORKSHEET_SEED = {
-  persona_name: "Jordan Lee (Demo Household)",
+  persona_name: "Demo workbook (synthetic)",
   disclaimer:
-    "Synthetic data for portfolio evaluation. Not real finances. Not financial advice.",
+    "Synthetic numbers only. Shows structure and method — not real finances. Not advice.",
   as_of: "2026-07-18",
+  areas: [
+    { id: "control", name: "Financial Sheet", purpose: "Today's totals, limits, debt clocks, directives. What I need to see." },
+    { id: "journal", name: "Journal", purpose: "Daily snapshot log. Upsert by date — re-run safe. History I can trust." },
+    { id: "holdings", name: "Holdings", purpose: "Line-level truth: account × asset × qty × mark." },
+    { id: "debt", name: "Debt stack", purpose: "Facilities, utilization, payoff clocks. Order and pressure, not vibes." },
+    { id: "payments", name: "Payments testground", purpose: "Sandbox payment strategies before they hit the live ledger." },
+    { id: "paycheck", name: "Paycheck", purpose: "Waterfall of net income into buckets. Scenario toggles." },
+    { id: "phone", name: "Phone view", purpose: "Same model, compressed for glance / mobile." },
+  ],
   accounts: [
-    { id: "cash_primary", name: "Demo Checking", institution: "Northstar Bank", kind: "cash", category: "assets", balance: 4200, credit_limit: null, apr_pct: null },
-    { id: "cash_reserve", name: "Demo High-Yield Savings", institution: "Northstar Bank", kind: "cash", category: "assets", balance: 6800, credit_limit: null, apr_pct: null },
-    { id: "brokerage", name: "Demo Brokerage", institution: "Summit Markets", kind: "brokerage", category: "assets", balance: 0, credit_limit: null, apr_pct: null },
-    { id: "retirement_401k", name: "Demo 401(k)", institution: "Summit Markets", kind: "retirement", category: "investments", balance: 0, credit_limit: null, apr_pct: null },
-    { id: "ira", name: "Demo IRA", institution: "Summit Markets", kind: "retirement", category: "investments", balance: 0, credit_limit: null, apr_pct: null },
-    { id: "hsa", name: "Demo HSA", institution: "HealthVault", kind: "hsa", category: "assets", balance: 2400, credit_limit: null, apr_pct: null },
-    { id: "crypto", name: "Demo Crypto Wallet", institution: "OpenChain", kind: "crypto", category: "assets", balance: 0, credit_limit: null, apr_pct: null },
-    { id: "points", name: "Demo Rewards Vault", institution: "Various", kind: "points", category: "assets", balance: 0, credit_limit: null, apr_pct: null },
-    { id: "card_alpha", name: "Demo Card Alpha", institution: "Alpha Financial", kind: "credit", category: "liabilities", balance: 4100, credit_limit: 9000, apr_pct: 19.9 },
-    { id: "card_beta", name: "Demo Card Beta", institution: "Beta Financial", kind: "credit", category: "liabilities", balance: 2850, credit_limit: 7500, apr_pct: 22.4 },
-    { id: "card_gamma", name: "Demo Card Gamma", institution: "Gamma Financial", kind: "credit", category: "liabilities", balance: 960, credit_limit: 5000, apr_pct: 18.5 },
-    { id: "personal_loan", name: "Demo Personal Loan", institution: "Northstar Bank", kind: "loan", category: "liabilities", balance: 7200, credit_limit: 15000, apr_pct: 9.5 },
+    { id: "cash_primary", name: "Demo Checking", institution: "Northstar Bank", kind: "cash", category: "assets", credit_limit: null, apr_pct: null },
+    { id: "cash_reserve", name: "Demo High-Yield Savings", institution: "Northstar Bank", kind: "cash", category: "assets", credit_limit: null, apr_pct: null },
+    { id: "brokerage", name: "Demo Brokerage", institution: "Summit Markets", kind: "brokerage", category: "assets", credit_limit: null, apr_pct: null },
+    { id: "retirement_401k", name: "Demo 401(k)", institution: "Summit Markets", kind: "retirement", category: "investments", credit_limit: null, apr_pct: null },
+    { id: "ira", name: "Demo IRA", institution: "Summit Markets", kind: "retirement", category: "investments", credit_limit: null, apr_pct: null },
+    { id: "hsa", name: "Demo HSA", institution: "HealthVault", kind: "hsa", category: "assets", credit_limit: null, apr_pct: null },
+    { id: "crypto", name: "Demo Crypto Wallet", institution: "OpenChain", kind: "crypto", category: "assets", credit_limit: null, apr_pct: null },
+    { id: "points", name: "Demo Rewards Vault", institution: "Various", kind: "points", category: "assets", credit_limit: null, apr_pct: null },
+    { id: "card_alpha", name: "Demo Card Alpha", institution: "Alpha Financial", kind: "credit", category: "liabilities", credit_limit: 9000, apr_pct: 19.9 },
+    { id: "card_beta", name: "Demo Card Beta", institution: "Beta Financial", kind: "credit", category: "liabilities", credit_limit: 7500, apr_pct: 22.4 },
+    { id: "card_gamma", name: "Demo Card Gamma", institution: "Gamma Financial", kind: "credit", category: "liabilities", credit_limit: 5000, apr_pct: 18.5 },
+    { id: "personal_loan", name: "Demo Personal Loan", institution: "Northstar Bank", kind: "loan", category: "liabilities", credit_limit: 15000, apr_pct: 9.5 },
   ],
   holdings: [
     { account_id: "cash_primary", account_name: "Demo Checking", asset: "Checking cash", ticker: "", quantity: 1, price: 4200, asset_type: "cash" },
@@ -52,6 +60,11 @@ window.WORKSHEET_SEED = {
     { as_of: "2026-07-10", assets: 45500, liabilities: -25500, investments: 54500 },
     { as_of: "2026-07-17", assets: 44800, liabilities: -25100, investments: 53800 },
   ],
+  journal_seed: [
+    { as_of: "2026-07-10", assets: 14100, liabilities: -15110, investments: 43301, note: "ATH-ish day" },
+    { as_of: "2026-07-15", assets: 13800, liabilities: -15200, investments: 42800, note: "" },
+    { as_of: "2026-07-17", assets: 13900, liabilities: -15110, investments: 43000, note: "pre-today" },
+  ],
   runway: {
     monthly_expenses: 4200,
     months_target: 6,
@@ -74,9 +87,20 @@ window.WORKSHEET_SEED = {
       { name: "reduced_income", income_multiplier: 0.85, debt_extra: 0 },
     ],
   },
+  payments_testground: [
+    { name: "avalanche_1k", strategy: "avalanche", budget: 1000, description: "Throw $1k at highest APR first" },
+    { name: "snowball_1k", strategy: "snowball", budget: 1000, description: "Throw $1k at smallest balance first" },
+    {
+      name: "directed_split",
+      strategy: "directed",
+      budget: 1000,
+      description: "Fixed split — loan + alpha card",
+      directed: { personal_loan: 600, card_alpha: 400 },
+    },
+  ],
   ops: {
-    notes: "Stay the course. Synthetic market directive for demo only.",
-    market_directive: "Monitor cycle; rebalance quarterly. Not advice.",
+    notes: "Methodical check-in. Synthetic directive for demo only.",
+    market_directive: "Rebalance on schedule; no chase. Not advice.",
     card_of_day: {
       Monday: "card_gamma",
       Tuesday: "card_alpha",
@@ -86,5 +110,7 @@ window.WORKSHEET_SEED = {
       Saturday: "card_gamma",
       Sunday: "card_gamma",
     },
+    automation:
+      "Journal upsert by date (overwrite if same day, else append). Same rules as Sheets Apps Script copyDataToJournal.",
   },
 };
