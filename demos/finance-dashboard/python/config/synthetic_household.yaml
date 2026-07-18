@@ -1,0 +1,285 @@
+# =============================================================================
+# CLEAN-ROOM SYNTHETIC DATA ONLY
+# Persona: "Jordan Lee" — fictional household for architecture demos.
+# No real balances, institutions fingerprints, or personal PII.
+# Swap numbers freely; structure mirrors a multi-tab financial worksheet OS.
+# =============================================================================
+
+persona:
+  name: "Jordan Lee (Demo Household)"
+  as_of: "2026-07-18"
+  disclaimer: "Synthetic data for portfolio evaluation. Not real finances."
+
+# Account control plane
+accounts:
+  - id: cash_primary
+    name: "Demo Checking"
+    institution: "Northstar Bank"
+    kind: cash
+    category: assets
+  - id: cash_reserve
+    name: "Demo High-Yield Savings"
+    institution: "Northstar Bank"
+    kind: cash
+    category: assets
+  - id: brokerage
+    name: "Demo Brokerage"
+    institution: "Summit Markets"
+    kind: brokerage
+    category: assets
+  - id: retirement_401k
+    name: "Demo 401(k)"
+    institution: "Summit Markets"
+    kind: retirement
+    category: investments
+  - id: ira
+    name: "Demo IRA"
+    institution: "Summit Markets"
+    kind: retirement
+    category: investments
+  - id: hsa
+    name: "Demo HSA"
+    institution: "HealthVault"
+    kind: hsa
+    category: assets
+  - id: crypto
+    name: "Demo Crypto Wallet"
+    institution: "OpenChain"
+    kind: crypto
+    category: assets
+  - id: points
+    name: "Demo Rewards Vault"
+    institution: "Various"
+    kind: points
+    category: assets
+  - id: card_alpha
+    name: "Demo Card Alpha"
+    institution: "Alpha Financial"
+    kind: credit
+    category: liabilities
+    credit_limit: 9000
+    apr_pct: 19.9
+  - id: card_beta
+    name: "Demo Card Beta"
+    institution: "Beta Financial"
+    kind: credit
+    category: liabilities
+    credit_limit: 7500
+    apr_pct: 22.4
+  - id: card_gamma
+    name: "Demo Card Gamma"
+    institution: "Gamma Financial"
+    kind: credit
+    category: liabilities
+    credit_limit: 5000
+    apr_pct: 18.5
+  - id: personal_loan
+    name: "Demo Personal Loan"
+    institution: "Northstar Bank"
+    kind: loan
+    category: liabilities
+    credit_limit: 15000
+    apr_pct: 9.5
+
+# Holdings data plane (account × asset)
+holdings:
+  - account_id: cash_primary
+    asset: "Checking cash"
+    ticker: null
+    quantity: 1
+    price: 4200.0
+    asset_type: cash
+  - account_id: cash_reserve
+    asset: "HYSA cash"
+    ticker: null
+    quantity: 1
+    price: 6800.0
+    asset_type: cash
+  - account_id: brokerage
+    asset: "Cash sweep"
+    ticker: "SWEEP"
+    quantity: 2100.0
+    price: 1.0
+    asset_type: cash
+  - account_id: brokerage
+    asset: "Broad market ETF"
+    ticker: "VTI"
+    quantity: 45.0
+    price: 255.0
+    asset_type: stock
+  - account_id: brokerage
+    asset: "Mega-cap tech"
+    ticker: "AAPL"
+    quantity: 12.0
+    price: 188.0
+    asset_type: stock
+  - account_id: brokerage
+    asset: "Software"
+    ticker: "MSFT"
+    quantity: 8.0
+    price: 415.0
+    asset_type: stock
+  - account_id: retirement_401k
+    asset: "Target-date fund"
+    ticker: "TD2060"
+    quantity: 320.0
+    price: 48.5
+    asset_type: retirement
+  - account_id: ira
+    asset: "Total stock index"
+    ticker: "VTSAX"
+    quantity: 85.0
+    price: 130.0
+    asset_type: retirement
+  - account_id: hsa
+    asset: "HSA cash"
+    ticker: null
+    quantity: 1
+    price: 2400.0
+    asset_type: health_savings
+  - account_id: crypto
+    asset: "Ethereum"
+    ticker: "ETH"
+    quantity: 0.35
+    price: 3200.0
+    asset_type: crypto
+  - account_id: crypto
+    asset: "Bitcoin"
+    ticker: "BTC"
+    quantity: 0.02
+    price: 64000.0
+    asset_type: crypto
+  - account_id: points
+    asset: "Airline miles (est. $)"
+    ticker: null
+    quantity: 1
+    price: 480.0
+    asset_type: points
+  - account_id: points
+    asset: "Hotel points (est. $)"
+    ticker: null
+    quantity: 1
+    price: 220.0
+    asset_type: points
+  # Liabilities as negative balance holdings (qty=1, price = amount owed)
+  - account_id: card_alpha
+    asset: "Revolving balance"
+    ticker: null
+    quantity: 1
+    price: 4100.0
+    asset_type: credit_debt
+  - account_id: card_beta
+    asset: "Revolving balance"
+    ticker: null
+    quantity: 1
+    price: 2850.0
+    asset_type: credit_debt
+  - account_id: card_gamma
+    asset: "Revolving balance"
+    ticker: null
+    quantity: 1
+    price: 960.0
+    asset_type: credit_debt
+  - account_id: personal_loan
+    asset: "Loan principal"
+    ticker: null
+    quantity: 1
+    price: 7200.0
+    asset_type: loan_debt
+
+# Historical net-worth snapshots (append-only style) for ATH/ATL/YTD
+# Values are synthetic and rounded.
+snapshots:
+  - as_of: "2024-06-24"
+    assets: 28000
+    liabilities: -42000
+    investments: 22000
+    label: atl_seed
+  - as_of: "2024-12-31"
+    assets: 31000
+    liabilities: -38000
+    investments: 28000
+    label: prior_year_end
+  - as_of: "2025-06-15"
+    assets: 35000
+    liabilities: -34000
+    investments: 36000
+    label: mid
+  - as_of: "2025-12-31"
+    assets: 38000
+    liabilities: -30000
+    investments: 42000
+    label: year_end_2025
+  - as_of: "2026-03-01"
+    assets: 40000
+    liabilities: -28000
+    investments: 48000
+    label: spring
+  - as_of: "2026-06-01"
+    assets: 43000
+    liabilities: -26000
+    investments: 52000
+    label: early_summer
+  - as_of: "2026-07-10"
+    assets: 45500
+    liabilities: -25500
+    investments: 54500
+    label: ath_candidate
+  - as_of: "2026-07-17"
+    assets: 44800
+    liabilities: -25100
+    investments: 53800
+    label: yesterday
+
+runway:
+  monthly_expenses: 4200.0
+  months_target: 6
+  # optional: cash accounts counted toward expense fund
+  fund_account_ids:
+    - cash_reserve
+    - cash_primary
+
+cashflow:
+  net_income_annual: 96000.0
+  cadence: biweekly
+  # waterfall allocation fractions of each paycheck (must sum ~1.0)
+  waterfall:
+    - name: Housing
+      fraction: 0.28
+    - name: Essentials
+      fraction: 0.18
+    - name: Debt payments
+      fraction: 0.22
+    - name: Investing
+      fraction: 0.15
+    - name: Buffer / fun
+      fraction: 0.10
+    - name: Emergency fund top-up
+      fraction: 0.07
+  scenarios:
+    - name: baseline
+      income_multiplier: 1.0
+      debt_extra: 0.0
+    - name: aggressive_debt
+      income_multiplier: 1.0
+      debt_extra: 400.0
+    - name: reduced_income
+      income_multiplier: 0.85
+      debt_extra: 0.0
+
+ops_policy:
+  notes: "Stay the course. Synthetic market directive for demo only."
+  market_directive: "Monitor cycle; rebalance quarterly. Not advice."
+  card_of_day:
+    Monday: card_gamma
+    Tuesday: card_alpha
+    Wednesday: card_beta
+    Thursday: card_alpha
+    Friday: card_beta
+    Saturday: card_gamma
+    Sunday: card_gamma
+
+market:
+  # Optional: re-price stock/crypto holdings via market client
+  mark_to_market: false
+  provider: mock

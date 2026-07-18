@@ -1,21 +1,24 @@
-# Personal Finance Dashboard
+# Financial Worksheet OS
 
 | Artifact | Link |
 |----------|------|
 | **Live demo (Pages)** | [index.html](./index.html) |
 | **Architecture write-up** | [../../projects/finance-dashboard.html](../../projects/finance-dashboard.html) |
 | **Python package** | [python/](./python/) |
+| **Synthetic config** | [python/config/synthetic_household.yaml](./python/config/synthetic_household.yaml) |
 
-## What it demonstrates
+## Clean-room notice
 
-- API adapter pattern (mock / yfinance / Alpha Vantage)
-- ETL normalize + holdings join
-- Portfolio analytics (P&L, allocation, projection, rough risk)
-- Production-vibe: typing, logging, retries, config, tests
-- GitHub Pages–friendly browser demo (mock provider)
+Public demo uses a **fictional household** (Jordan Lee).  
+Do not commit real balances, payroll, or institution fingerprints to this repo.
 
-## Quick links for reviewers
+## Views
+
+Cockpit · Accounts · Holdings · Debt stack · Paycheck · Phone
+
+## Quick start
 
 ```bash
-cd python && pip install -r requirements.txt && python -m src.main --demo && pytest -q
+cd python && pip install -r requirements.txt
+python -m src.main --worksheet && pytest -q
 ```

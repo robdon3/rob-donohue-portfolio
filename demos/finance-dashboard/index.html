@@ -3,14 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Finance Dashboard Live Demo — Rob Donohue</title>
-  <meta name="description" content="Live browser demo of the Personal Finance Dashboard architecture: mock market ETL, allocation, projections." />
+  <title>Financial Worksheet OS — Live Demo | Rob Donohue</title>
+  <meta name="description" content="Clean-room synthetic Financial Worksheet OS: cockpit, accounts, holdings, debt stack, paycheck waterfall. Architecture demo — not real finances." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../../css/styles.css" />
+  <style>
+    .synth-banner {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: var(--amber);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      margin-bottom: 1.25rem;
+    }
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.75rem;
+    }
+    .tab-bar button {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.45rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .tab-bar button.active,
+    .tab-bar button:hover {
+      color: var(--text);
+      border-color: rgba(61, 156, 240, 0.45);
+      background: var(--accent-soft);
+    }
+    .kpi-value { font-size: 1.05rem; }
+    #kpi-ath, #kpi-atl, #kpi-card, #kpi-runway { font-size: 0.9rem; }
+    .phone-shell {
+      max-width: 380px;
+      margin: 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 1rem;
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+    }
+    .phone-shell h4 {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin: 1rem 0 0.4rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <script src="../../js/main.js" defer></script>
+  <script src="js/worksheet-data.js" defer></script>
   <script src="js/demo.js" defer></script>
 </head>
 <body>
@@ -35,128 +90,177 @@
   </header>
 
   <main class="container" style="padding: 2rem 0 4rem">
-    <div class="page-hero" style="border: none; margin-bottom: 1rem; padding-top: 1rem">
+    <div class="page-hero" style="border: none; margin-bottom: 0.5rem; padding-top: 1rem">
       <p class="breadcrumb"><a href="../../index.html">Home</a> / demos / finance-dashboard</p>
-      <h1>Personal Finance Dashboard — live demo</h1>
+      <h1>Financial Worksheet OS</h1>
       <p class="lead">
-        Browser-side mirror of the Python ETL + analytics pipeline using a deterministic mock provider
-        (GitHub Pages friendly — no API keys, no CORS). Same domain concepts as
-        <code>MockMarketClient</code> → <code>FinanceETLPipeline</code> → <code>PortfolioAnalytics</code>.
+        Multi-view ledger inspired by advanced spreadsheet practice:
+        <strong>cockpit · accounts · holdings · debt stack · paycheck waterfall · phone surface</strong>.
+        Clean-room synthetic household only — structure over secrets.
       </p>
+      <p style="margin-top: 0.5rem; font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-dim)">
+        Persona: <span id="persona-label">—</span>
+      </p>
+    </div>
+
+    <div class="synth-banner" id="disclaimer-banner" role="status">
+      Synthetic data for portfolio evaluation. Not real finances.
     </div>
 
     <div class="demo-shell">
       <div class="demo-toolbar">
         <label>
-          Holdings (SYM:shares@cost)
-          <input id="holdings-input" type="text" style="min-width: min(100%, 420px); width: 420px" />
+          Cashflow scenario
+          <select id="scenario-select">
+            <option value="baseline">baseline</option>
+            <option value="aggressive_debt">aggressive_debt</option>
+            <option value="reduced_income">reduced_income</option>
+          </select>
         </label>
-        <label>
-          Cash ($)
-          <input id="cash-input" type="number" value="5000" style="min-width: 100px" />
-        </label>
-        <label>
-          History days
-          <input id="days-input" type="number" value="90" min="30" max="365" style="min-width: 80px" />
-        </label>
-        <label>
-          Assumed return %
-          <input id="return-input" type="number" value="7" step="0.5" style="min-width: 80px" />
-        </label>
-        <label>
-          Projection years
-          <input id="years-input" type="number" value="10" min="1" max="40" style="min-width: 70px" />
-        </label>
-        <button type="button" class="btn btn-primary" id="run-demo">Run pipeline</button>
-        <button type="button" class="btn btn-ghost" id="reset-demo">Reset</button>
+        <button type="button" class="btn btn-primary" id="run-demo">Recompute</button>
+        <span class="mono" style="font-size: 0.75rem; color: var(--text-dim)">provider=synthetic ledger · no live PII</span>
       </div>
       <div class="demo-body">
-        <div class="kpi-row">
-          <div class="kpi">
-            <div class="kpi-label">Total market value</div>
-            <div class="kpi-value" id="kpi-total">—</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Unrealized P&amp;L</div>
-            <div class="kpi-value" id="kpi-pnl">—</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Cash</div>
-            <div class="kpi-value" id="kpi-cash">—</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Ann. vol (primary)</div>
-            <div class="kpi-value" id="kpi-vol">—</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Positions</div>
-            <div class="kpi-value" id="kpi-symbols">—</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Provider</div>
-            <div class="kpi-value mono" id="kpi-provider">mock</div>
-          </div>
+        <div class="tab-bar" role="tablist">
+          <button type="button" data-tab="cockpit" class="active">Cockpit</button>
+          <button type="button" data-tab="accounts">Accounts</button>
+          <button type="button" data-tab="holdings">Holdings</button>
+          <button type="button" data-tab="debt">Debt stack</button>
+          <button type="button" data-tab="paycheck">Paycheck</button>
+          <button type="button" data-tab="phone">Phone view</button>
         </div>
 
-        <div class="chart-grid">
-          <div class="chart-panel">
-            <h4>Primary symbol — mock close history</h4>
-            <div style="height: 240px">
-              <canvas id="price-chart"></canvas>
-            </div>
+        <!-- COCKPIT -->
+        <div data-tab-panel="cockpit">
+          <div class="kpi-row">
+            <div class="kpi"><div class="kpi-label">Net worth</div><div class="kpi-value" id="kpi-nw">—</div></div>
+            <div class="kpi"><div class="kpi-label">Assets</div><div class="kpi-value" id="kpi-assets">—</div></div>
+            <div class="kpi"><div class="kpi-label">Investments</div><div class="kpi-value" id="kpi-investments">—</div></div>
+            <div class="kpi"><div class="kpi-label">Liabilities</div><div class="kpi-value" id="kpi-liabilities">—</div></div>
+            <div class="kpi"><div class="kpi-label">A/D ratio</div><div class="kpi-value" id="kpi-ad">—</div></div>
+            <div class="kpi"><div class="kpi-label">YTD Δ NW</div><div class="kpi-value" id="kpi-ytd">—</div></div>
+            <div class="kpi"><div class="kpi-label">Daily Δ</div><div class="kpi-value" id="kpi-daily">—</div></div>
+            <div class="kpi"><div class="kpi-label">ATH</div><div class="kpi-value" id="kpi-ath">—</div></div>
+            <div class="kpi"><div class="kpi-label">ATL</div><div class="kpi-value" id="kpi-atl">—</div></div>
+            <div class="kpi"><div class="kpi-label">Runway</div><div class="kpi-value" id="kpi-runway">—</div></div>
+            <div class="kpi"><div class="kpi-label">Card of day</div><div class="kpi-value" id="kpi-card">—</div></div>
           </div>
-          <div class="chart-panel">
-            <h4>Allocation (incl. cash)</h4>
-            <div style="height: 240px">
-              <canvas id="alloc-chart"></canvas>
+          <p id="runway-note" style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem"></p>
+          <p id="ops-directive" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; font-style: italic"></p>
+          <div class="chart-grid">
+            <div class="chart-panel">
+              <h4>Net worth history (snapshots)</h4>
+              <div style="height: 240px"><canvas id="nw-chart"></canvas></div>
+            </div>
+            <div class="chart-panel">
+              <h4>Home sleeves</h4>
+              <div style="height: 240px"><canvas id="sleeve-chart"></canvas></div>
             </div>
           </div>
         </div>
 
-        <p id="projection-note" style="margin-top: 1rem; color: var(--text-dim); font-size: 0.9rem"></p>
-
-        <div class="table-wrap">
-          <table class="data" id="positions-table">
-            <thead>
-              <tr>
-                <th>Symbol</th>
-                <th>Shares</th>
-                <th>Price</th>
-                <th>Market value</th>
-                <th>Unrealized P&amp;L</th>
-                <th>Weight</th>
-                <th>Day Δ%</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        <!-- ACCOUNTS -->
+        <div data-tab-panel="accounts" hidden>
+          <div class="table-wrap">
+            <table class="data" id="accounts-table">
+              <thead>
+                <tr>
+                  <th>Account</th><th>Kind</th><th>Category</th><th>Balance</th><th>Limit</th><th>Util%</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
 
-        <div class="log-panel" id="demo-log" aria-live="polite"></div>
+        <!-- HOLDINGS -->
+        <div data-tab-panel="holdings" hidden>
+          <div class="table-wrap">
+            <table class="data" id="holdings-table">
+              <thead>
+                <tr>
+                  <th>Account</th><th>Asset</th><th>Ticker</th><th>Qty</th><th>Price</th><th>Value</th><th>Type</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- DEBT -->
+        <div data-tab-panel="debt" hidden>
+          <div class="chart-grid">
+            <div class="chart-panel">
+              <h4>Debt composition</h4>
+              <div style="height: 240px"><canvas id="debt-chart"></canvas></div>
+            </div>
+            <div class="table-wrap">
+              <table class="data" id="debt-table">
+                <thead>
+                  <tr>
+                    <th>Facility</th><th>Balance</th><th>% debt</th><th>Util%</th><th>APR</th><th>Payoff mo</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAYCHECK -->
+        <div data-tab-panel="paycheck" hidden>
+          <div class="kpi-row" style="max-width: 480px">
+            <div class="kpi"><div class="kpi-label">Scenario</div><div class="kpi-value mono" id="kpi-scenario">—</div></div>
+            <div class="kpi"><div class="kpi-label">Biweekly paycheck</div><div class="kpi-value" id="kpi-paycheck">—</div></div>
+          </div>
+          <div class="table-wrap">
+            <table class="data" id="cashflow-table">
+              <thead>
+                <tr><th>Bucket</th><th>Fraction</th><th>Amount</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PHONE -->
+        <div data-tab-panel="phone" hidden>
+          <div class="phone-shell">
+            <p class="mono" style="font-size: 0.7rem; color: var(--text-dim); text-align: center">phone surface · same model</p>
+            <h4>Snapshot</h4>
+            <table class="data" id="phone-ytd"><tbody></tbody></table>
+            <h4>Cards available</h4>
+            <table class="data" id="phone-cards">
+              <thead><tr><th>Card</th><th>APR</th><th>Remaining</th><th>Used</th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <h4>Sleeves</h4>
+            <table class="data" id="phone-sleeves"><tbody></tbody></table>
+          </div>
+        </div>
+
+        <div class="log-panel" id="demo-log" aria-live="polite" style="margin-top: 1.25rem"></div>
       </div>
     </div>
 
     <div class="prose" style="margin-top: 2rem">
       <h2>Python equivalent</h2>
       <pre><code>cd demos/finance-dashboard/python
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python -m src.main --demo
-# live data:
-FINANCE_PROVIDER=yfinance python -m src.main --demo</code></pre>
+source .venv/bin/activate   # or create venv + pip install -r requirements.txt
+python -m src.main --worksheet
+python -m src.main --worksheet --export-json data/output/worksheet.json
+# original market-data demo still available:
+python -m src.main --market-demo</code></pre>
       <p>
-        Full design narrative, Mermaid data-flow, and trade-offs:
+        Architecture narrative:
         <a href="../../projects/finance-dashboard.html">How I Architected This</a>.
-      </p>
-      <p style="font-size: 0.85rem; color: var(--text-dim)">
-        Not financial advice. Mock prices are synthetic and deterministic for demo stability.
       </p>
     </div>
   </main>
 
   <footer class="footer">
     <div class="container footer-inner">
-      <span>© <span id="year">2026</span> Rob Donohue · Finance Dashboard demo</span>
+      <span>© <span id="year">2026</span> Rob Donohue · Clean-room synthetic worksheet OS</span>
       <a href="../../index.html">← Portfolio home</a>
     </div>
   </footer>

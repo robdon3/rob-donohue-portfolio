@@ -1,104 +1,99 @@
-# Personal Finance Dashboard — Python Core
+# Financial Worksheet OS — Python Core
 
-API-connected portfolio demo: **adapters → ETL → analytics → CLI**.
+Clean-room multi-view personal finance system for architecture demos.
 
-Designed as an original, shareable framework you can re-point at real APIs and holdings.
+**Synthetic data only** (`config/synthetic_household.yaml`).  
+No real balances, institutions, or PII belong in this package for public use.
 
-## Architecture (short)
+## What it is
+
+A modular reimplementation of a “worksheet-class” finance OS:
+
+| View | Module |
+|------|--------|
+| Cockpit KPIs (NW, ATH/ATL, YTD, A/D) | `snapshots/` + `ledger/` |
+| Accounts ledger | `ledger/` |
+| Holdings grid | `ledger/` |
+| Debt stack | `debt/` |
+| Expense runway | `runway/` |
+| Paycheck waterfall + scenarios | `cashflow/` |
+| Composition root | `worksheet/` |
+| Optional market mark-to-market | `clients/` + `--market-demo` |
+
+## Quick start
+
+```bash
+cd demos/finance-dashboard/python
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# Default: full worksheet OS (synthetic)
+python -m src.main --worksheet
+python -m src.main --worksheet --export-json data/output/worksheet.json
+
+# Original API market slice
+python -m src.main --market-demo
+FINANCE_PROVIDER=yfinance python -m src.main --market-demo
+
+pytest -q
+```
+
+## Architecture
 
 ```
-config/settings.yaml ──► main.py
-                           │
-                     get_market_client()
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-           mock      yfinance    alpha_vantage
-              └────────────┬────────────┘
-                           ▼
-                  FinanceETLPipeline
-                    quotes / history
-                    positions join
-                           ▼
-                  PortfolioAnalytics
-                 snapshot · allocation
-                 projection · metrics
+synthetic_household.yaml
+        │
+        ▼
+ worksheet.engine.run_worksheet()
+        │
+        ├─► ledger        accounts + holdings → buckets
+        ├─► debt          utilization, % stack, payoff clocks
+        ├─► snapshots     ATH / ATL / YTD / daily Δ
+        ├─► runway        N-month expense fund
+        └─► cashflow      biweekly waterfall + scenarios
+                │
+                ▼
+         WorksheetBundle → CLI / JSON / browser seed
 ```
 
 ### Design decisions
 
 | Choice | Why |
 |--------|-----|
-| **Adapter interface** (`MarketDataClient`) | Swap providers without touching analytics |
-| **Mock default** | Offline demos, CI, interviews — always works |
-| **Pydantic domain models** | Stable contracts across layers |
-| **Pure analytics** | Testable without network |
-| **Structured logging + retries** | Production-shaped operability |
-| **Config YAML + env** | Vibe-friendly: edit holdings, not code |
+| Dual grain (accounts + holdings) | Matches real power-user worksheets |
+| Snapshots as append-only series | ATH/ATL integrity vs overwriting cells |
+| Liabilities first-class | Debt is not “negative stock” |
+| Synthetic default | Safe public portfolio artifact |
+| Pure-ish modules | Unit test without network |
 
-### Trade-offs
+### Extension points
 
-- **yfinance**: convenient, no key — not a production SLA feed  
-- **Alpha Vantage free tier**: hard rate limits — cache and mock for bulk demos  
-- **Projections**: simple compound model — educational, not advice  
-- **No auth/multi-tenant**: portfolio is local config by design  
-
-## Quick start
-
-```bash
-cd demos/finance-dashboard/python
-python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-
-# Offline demo (default)
-python -m src.main --demo
-
-# Live Yahoo data (no API key)
-FINANCE_PROVIDER=yfinance python -m src.main --demo
-
-# Alpha Vantage
-cp .env.example .env
-# set ALPHA_VANTAGE_API_KEY=...
-FINANCE_PROVIDER=alpha_vantage python -m src.main --demo
-
-# Export snapshot
-python -m src.main --demo --export-json data/output/snapshot.json
-```
-
-## Tests
-
-```bash
-pytest -q
-```
-
-## Extension points (vibe here)
-
-1. **New API** — implement `MarketDataClient`, register in `clients/factory.py`  
-2. **Holdings** — edit `config/settings.yaml`  
-3. **Metrics** — add methods on `PortfolioAnalytics`  
-4. **UI** — call `FinanceETLPipeline.run_portfolio_etl` from Streamlit/FastAPI  
-5. **Real tracking** — replace mock cost basis with brokerage CSV import adapter  
+1. Swap `synthetic_household.yaml` numbers (keep fictional).
+2. Import CSV → build the same config dict → `run_worksheet(config=...)`.
+3. Streamlit tabs over `WorksheetBundle`.
+4. Mark-to-market: price stock/crypto holdings via `clients/` before rollup.
 
 ## Layout
 
 ```
 python/
-├── config/settings.yaml
+├── config/
+│   ├── synthetic_household.yaml   # clean-room persona
+│   └── settings.yaml              # market-demo portfolio
 ├── src/
-│   ├── main.py              # CLI
-│   ├── config_loader.py
-│   ├── clients/             # adapters
-│   ├── etl/                 # normalize + join
-│   ├── analytics/           # portfolio math
-│   ├── models/              # pydantic contracts
-│   └── utils/               # logging, retry
-├── tests/
-├── data/                    # sample + output (gitignored cache)
-├── requirements.txt
-└── .env.example
+│   ├── main.py
+│   ├── worksheet/                 # orchestrator
+│   ├── ledger/
+│   ├── debt/
+│   ├── snapshots/
+│   ├── runway/
+│   ├── cashflow/
+│   ├── clients/                   # market adapters
+│   ├── etl/ analytics/ models/    # market-demo spine
+│   └── utils/
+└── tests/
 ```
 
 ## Disclaimer
 
-Not financial advice. Market data may be delayed or synthetic. Demo for architecture evaluation only.
+Not financial advice. Synthetic demo for systems architecture evaluation.

@@ -1,15 +1,13 @@
 """
-CLI entrypoint — Personal Finance Dashboard demo.
+CLI entrypoint — Financial Worksheet OS + market portfolio demos.
 
 Usage:
-  python -m src.main --demo
-  python -m src.main --provider mock --symbols AAPL,MSFT
-  FINANCE_PROVIDER=yfinance python -m src.main --demo
+  python -m src.main --worksheet
+  python -m src.main --worksheet --export-json data/output/worksheet.json
+  python -m src.main --market-demo
+  FINANCE_PROVIDER=yfinance python -m src.main --market-demo
 
-Extension tips:
-  - Point FINANCE_PROVIDER at a new adapter registered in clients/factory.py
-  - Edit config/settings.yaml for holdings / projection assumptions
-  - Wire this pipeline into Streamlit or FastAPI without changing analytics
+Clean-room: --worksheet uses synthetic_household.yaml only (no real PII).
 """
 
 from __future__ import annotations
@@ -33,6 +31,7 @@ from .config_loader import (
 )
 from .etl.pipeline import FinanceETLPipeline
 from .utils.logging_setup import get_logger, setup_logging
+from .worksheet.engine import bundle_to_jsonable, run_worksheet
 
 console = Console()
 logger = get_logger(__name__)
@@ -40,34 +39,44 @@ logger = get_logger(__name__)
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        description="Personal Finance Dashboard — API-connected Python demo",
+        description="Financial Worksheet OS — clean-room multi-view finance demo",
     )
     p.add_argument(
-        "--provider",
-        default=None,
-        help="mock | yfinance | alpha_vantage (default: env FINANCE_PROVIDER or mock)",
+        "--worksheet",
+        action="store_true",
+        help="Run multi-view worksheet OS (synthetic household). Default mode.",
     )
     p.add_argument(
-        "--symbols",
-        default=None,
-        help="Comma-separated symbols override (quotes only mode)",
+        "--market-demo",
+        action="store_true",
+        help="Run original market-data portfolio demo (API adapters)",
     )
     p.add_argument(
         "--demo",
         action="store_true",
-        help="Run full portfolio demo from config/settings.yaml",
+        help="Alias for --worksheet (backward compatible)",
+    )
+    p.add_argument(
+        "--provider",
+        default=None,
+        help="mock | yfinance | alpha_vantage (market-demo only)",
+    )
+    p.add_argument(
+        "--symbols",
+        default=None,
+        help="Comma-separated symbols override (market-demo)",
     )
     p.add_argument(
         "--history-days",
         type=int,
         default=None,
-        help="Override history window",
+        help="Override history window (market-demo)",
     )
     p.add_argument(
         "--export-json",
         type=Path,
         default=None,
-        help="Optional path to write snapshot JSON",
+        help="Write worksheet or market snapshot JSON",
     )
     p.add_argument(
         "--cache-dir",
@@ -75,7 +84,127 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional directory for CSV artifacts",
     )
+    p.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="Path to synthetic household YAML (worksheet mode)",
+    )
     return p
+
+
+def money(n: float | None) -> str:
+    if n is None:
+        return "—"
+    return f"${n:,.2f}"
+
+
+def run_worksheet_cli(args: argparse.Namespace) -> int:
+    bundle = run_worksheet(config_path=args.config)
+    c = bundle.cockpit
+
+    console.rule("[bold cyan]Financial Worksheet OS[/bold cyan] — clean-room synthetic")
+    console.print(f"[bold]{bundle.persona_name}[/bold]")
+    console.print(f"[dim]{bundle.disclaimer}[/dim]\n")
+
+    console.print(
+        f"As of [cyan]{c.as_of}[/cyan]  |  "
+        f"Net worth [green]{money(c.net_worth)}[/green]  |  "
+        f"Assets {money(c.assets)}  |  Investments {money(c.investments)}  |  "
+        f"Liabilities [red]{money(c.liabilities)}[/red]"
+    )
+    console.print(
+        f"A/D ratio: {c.ad_ratio}  |  "
+        f"ATH {money(c.ath_net_worth)} ({c.ath_date})  |  "
+        f"ATL {money(c.atl_net_worth)} ({c.atl_date})  |  "
+        f"YTD Δ {money(c.ytd_net_worth_change)}  |  "
+        f"Daily Δ {money(c.daily_change)}"
+    )
+    console.print(
+        f"Ops: card today = [yellow]{bundle.ops.get('card_of_day_name')}[/yellow] "
+        f"({bundle.ops.get('weekday')})  |  {bundle.ops.get('market_directive')}"
+    )
+
+    # Accounts
+    acct = Table(title="Accounts ledger")
+    for col in ("name", "kind", "category", "balance", "limit", "util%"):
+        acct.add_column(col)
+    for r in bundle.accounts:
+        util = r.get("utilization_pct")
+        acct.add_row(
+            str(r.get("name")),
+            str(r.get("kind")),
+            str(r.get("category")),
+            money(r.get("balance")),
+            money(r.get("credit_limit")) if r.get("credit_limit") else "—",
+            f"{util:.1f}%" if util is not None else "—",
+        )
+    console.print(acct)
+
+    # Debt stack
+    debt = Table(title="Debt stack")
+    for col in ("name", "balance", "% debt", "util%", "APR", "payoff mo", "est. date"):
+        debt.add_column(col)
+    for d in bundle.debt_stack:
+        debt.add_row(
+            d.name,
+            money(d.balance),
+            f"{d.pct_of_debt:.1f}%",
+            f"{d.utilization_pct:.1f}%" if d.utilization_pct is not None else "—",
+            f"{d.apr_pct:.1f}%" if d.apr_pct is not None else "—",
+            str(d.payoff_months_est) if d.payoff_months_est is not None else "—",
+            str(d.payoff_date_est) if d.payoff_date_est else "—",
+        )
+    console.print(debt)
+
+    # Runway
+    rw = bundle.runway
+    console.print(
+        f"Runway: fund {money(rw.current_fund)} / target {money(rw.target_fund)} "
+        f"({rw.months_covered:.1f} of {rw.months_target:.0f} mo)  |  "
+        f"deficit {money(rw.deficit)}  |  catch-up {money(rw.catchup_monthly)}/mo"
+    )
+
+    # Cashflow
+    cf = bundle.cashflow
+    wf = Table(title=f"Paycheck waterfall ({cf.cadence} · {money(cf.paycheck_gross)})")
+    wf.add_column("bucket")
+    wf.add_column("fraction")
+    wf.add_column("amount")
+    for b in cf.waterfall:
+        wf.add_row(b.name, f"{b.fraction:.0%}", money(b.amount))
+    console.print(wf)
+
+    # Holdings sample
+    hold = Table(title=f"Holdings ({len(bundle.holdings)} lines)")
+    for col in ("account", "asset", "ticker", "qty", "price", "value", "type"):
+        hold.add_column(col)
+    for r in bundle.holdings[:12]:
+        hold.add_row(
+            str(r.get("account_name")),
+            str(r.get("asset"))[:28],
+            str(r.get("ticker") or "—"),
+            f"{r.get('quantity'):g}",
+            money(r.get("price")),
+            money(r.get("value")),
+            str(r.get("asset_type")),
+        )
+    if len(bundle.holdings) > 12:
+        hold.add_row("…", f"+{len(bundle.holdings) - 12} more", "", "", "", "", "")
+    console.print(hold)
+
+    if args.export_json:
+        args.export_json.parent.mkdir(parents=True, exist_ok=True)
+        payload = bundle_to_jsonable(bundle)
+        args.export_json.write_text(
+            json.dumps(payload, indent=2, default=str), encoding="utf-8"
+        )
+        console.print(f"[green]Wrote[/green] {args.export_json}")
+
+    console.print(
+        "\n[dim]Synthetic data only · Not financial advice · Architecture demo[/dim]"
+    )
+    return 0
 
 
 def print_positions(positions) -> None:
@@ -101,7 +230,7 @@ def print_positions(positions) -> None:
     console.print(table)
 
 
-def run_demo(args: argparse.Namespace) -> int:
+def run_market_demo(args: argparse.Namespace) -> int:
     settings = load_yaml_settings()
     name, cash, holdings = portfolio_from_settings(settings)
     market_cfg = settings.get("market", {})
@@ -113,20 +242,13 @@ def run_demo(args: argparse.Namespace) -> int:
     cache = args.cache_dir or (Path(__file__).resolve().parent.parent / "data" / "output")
     pipeline = FinanceETLPipeline(client, cache_dir=cache)
 
-    # Optional symbol override: replace holdings weights equally (demo convenience)
     if args.symbols:
         symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
         from .models.domain import Holding
 
-        holdings = [
-            Holding(symbol=s, shares=10, cost_basis=100.0) for s in symbols
-        ]
+        holdings = [Holding(symbol=s, shares=10, cost_basis=100.0) for s in symbols]
 
-    result = pipeline.run_portfolio_etl(
-        holdings=holdings,
-        history_days=history_days,
-    )
-
+    result = pipeline.run_portfolio_etl(holdings=holdings, history_days=history_days)
     analytics = PortfolioAnalytics(
         expected_annual_return=float(analytics_cfg.get("expected_annual_return", 0.07)),
         projection_years=int(analytics_cfg.get("projection_years", 10)),
@@ -137,12 +259,11 @@ def run_demo(args: argparse.Namespace) -> int:
     projection = analytics.project_growth(snap.total_market_value)
     metrics = analytics.summary_metrics(result["history"])
 
-    console.rule(f"[bold]{snap.name}[/bold]")
+    console.rule(f"[bold]{snap.name}[/bold] (market-demo)")
     console.print(
         f"Provider: [cyan]{result['provider']}[/cyan]  |  "
-        f"As of: {snap.as_of.isoformat()}  |  "
-        f"Total MV: [green]${snap.total_market_value:,.2f}[/green]  |  "
-        f"Unrealized P&L: ${snap.unrealized_pnl:,.2f} ({snap.unrealized_pnl_pct:.2f}%)"
+        f"Total MV: [green]{money(snap.total_market_value)}[/green]  |  "
+        f"Unrealized P&L: {money(snap.unrealized_pnl)} ({snap.unrealized_pnl_pct:.2f}%)"
     )
     print_positions(result["positions"])
 
@@ -153,34 +274,32 @@ def run_demo(args: argparse.Namespace) -> int:
     for _, r in allocation.iterrows():
         alloc_table.add_row(
             str(r["asset"]),
-            f"${r['market_value']:,.2f}",
+            money(r["market_value"]),
             f"{r['weight_pct']:.1f}%",
         )
     console.print(alloc_table)
-
     if metrics:
         console.print(f"History metrics ({result['primary_symbol']}): {metrics}")
-
     console.print(
         f"Projection (year {int(projection.iloc[-1]['year'])}): "
-        f"${float(projection.iloc[-1]['value']):,.2f} "
-        f"@ assumed {analytics.expected_annual_return:.1%} annual"
+        f"{money(float(projection.iloc[-1]['value']))}"
     )
 
     if args.export_json:
         payload = {
+            "mode": "market-demo",
             "snapshot": snap.model_dump(mode="json"),
             "metrics": metrics,
             "projection": projection.to_dict(orient="records"),
             "provider": result["provider"],
         }
         args.export_json.parent.mkdir(parents=True, exist_ok=True)
-        args.export_json.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+        args.export_json.write_text(
+            json.dumps(payload, indent=2, default=str), encoding="utf-8"
+        )
         console.print(f"[green]Wrote[/green] {args.export_json}")
 
-    console.print(
-        "\n[dim]Not financial advice. Demo framework for architecture evaluation.[/dim]"
-    )
+    console.print("\n[dim]Not financial advice.[/dim]")
     return 0
 
 
@@ -189,12 +308,18 @@ def main(argv: list[str] | None = None) -> int:
     setup_logging(env_log_level())
     args = build_parser().parse_args(argv)
 
-    # Default to demo if no mode flags — friendlier for first run
-    if not args.demo and not args.symbols:
-        args.demo = True
+    use_market = args.market_demo or bool(args.symbols)
+    use_worksheet = args.worksheet or args.demo or not use_market
 
     try:
-        return run_demo(args)
+        if use_market and not (args.worksheet or args.demo):
+            return run_market_demo(args)
+        if use_market and (args.worksheet or args.demo):
+            # both flags: worksheet wins unless only market flags
+            return run_worksheet_cli(args)
+        if use_worksheet:
+            return run_worksheet_cli(args)
+        return run_market_demo(args)
     except Exception as exc:
         logger.exception("run failed: %s", exc)
         console.print(f"[red]Error:[/red] {exc}")
