@@ -1,85 +1,68 @@
 # Rob Donohue — Systems Architecture Portfolio
 
-**Original demo frameworks** for AI infrastructure, solution architecture, and defense-tech roles.
+A static site for original systems demos, plus one runnable finance worksheet. The numbers in that demo are synthetic. This repository does not contain client work.
 
-> First-principles architecture. Modular systems that stand independently. LLMs as implementation accelerators—not substitutes for design.
+**Live site:** [https://robdon3.github.io/rob-donohue-portfolio/](https://robdon3.github.io/rob-donohue-portfolio/)
 
-🌐 **Live site:** [https://robdon3.github.io/rob-donohue-portfolio/](https://robdon3.github.io/rob-donohue-portfolio/)
+## What it is
 
----
+A GitHub Pages site (HTML, CSS, and JavaScript, no build step) with one complete demo: a personal-finance control worksheet. Other project slots described on the site are not implemented in this repo.
 
-## Who This Is For
+## Problem
 
-Hiring managers and technical leaders evaluating systems architecture depth through **shareable demos**—not client IP. Each project emphasizes:
+Show module boundaries, adapters, and data flow in something a reviewer can open, without real personal or client data.
 
-- **Data flow & modularity** — clear boundaries, swappable adapters
-- **API-connected Python** — integrations, ETL, error resilience, logging
-- **Production-vibe code** — typing, config, tests, extension points
-- **Architecture narratives** — trade-offs, scalability, “how I architected this”
+## Approach
 
-## Portfolio Sections
+```text
+Browser demo (demos/finance-dashboard/)
+  worksheet-data.js → demo.js views
+  (control, accounts, holdings, debt, payments,
+   journal, paycheck, phone)
 
-| Section | Purpose |
-|---------|---------|
-| Hero / About | Background: MBSE, data/ETL, AI/automation, TS-cleared environments |
-| Skills / Stack | Technical surface area with architecture focus |
-| Demo Projects | 4–6 original frameworks (runnable + documented) |
-| Philosophy | Fountainhead-inspired first principles |
-| Contact | Reach out / download full portfolio PDF |
+Python package (demos/finance-dashboard/python/)
+  --worksheet
+    config/synthetic_household.yaml
+          → worksheet engine
+          → ledger, journal upsert, debt stack,
+            payments testground, cashflow, runway
 
-## Demo Frameworks
+  --market-demo (separate path; not required for the worksheet)
+    config/settings.yaml
+          → market clients (mock, yfinance, Alpha Vantage)
+```
 
-| # | Project | Status | Focus |
-|---|---------|--------|--------|
-| 1 | [Finance control system](demos/finance-dashboard/) | ✅ Live | Purpose-built areas, Journal upsert, payments testground (synthetic) |
-| 2 | PDF / Document Reconciliation | 🔜 Next | Parse → extract → reconcile (PyMuPDF, pandas) |
-| 3 | Automation Pipeline Framework | Planned | Multi-source aggregator, ETL, logging |
-| 4 | Advanced Financial Analyzer | Planned | Sheets-class modeling in Python |
-| 5 | Lightweight RAG Mock | Planned | Retrieval patterns for AI infra roles |
-| 6 | Job Tracker (API) | Planned | Multi-API orchestration |
+`--worksheet` reads only the synthetic household file. `--market-demo` is a separate path and is not required for the worksheet. The default market provider is an offline mock; yfinance and Alpha Vantage need a network.
 
-### Personal finance control system (ready)
+## Run
 
-Purpose-built workbook structure (synthetic numbers): control surface, Journal automation,
-debt, payments testground, paycheck. Not real personal data.
+Site:
+
+```bash
+python3 -m http.server 8080
+# http://localhost:8080
+# worksheet UI: http://localhost:8080/demos/finance-dashboard/
+```
+
+Python worksheet (Python 3.10+):
 
 ```bash
 cd demos/finance-dashboard/python
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m src.main --worksheet
-python -m src.main --market-demo   # optional market adapters
+pytest -q
 ```
 
-- **Live demo:** [demos/finance-dashboard/](demos/finance-dashboard/)
-- **How it's built:** [projects/finance-dashboard.html](projects/finance-dashboard.html)
-
-## Site Stack
-
-- Static **HTML / CSS / JS** (no build step) — GitHub Pages friendly
-- Dark-first tech aesthetic, responsive, accessible contrast
-- Mermaid diagrams for architecture views
-- Chart.js for live demo visualizations
-
-## Local Development
+Optional market demo (Alpha Vantage needs `ALPHA_VANTAGE_API_KEY` in a local `.env`, which is not committed):
 
 ```bash
-git clone https://github.com/robdon3/rob-donohue-portfolio.git
-cd rob-donohue-portfolio
-# Any static server works:
-python3 -m http.server 8080
-# open http://localhost:8080
+python -m src.main --market-demo
+FINANCE_PROVIDER=yfinance python -m src.main --market-demo
 ```
 
-## Design Philosophy (short)
+Narrative of the worksheet design: [projects/finance-dashboard.html](projects/finance-dashboard.html).
 
-1. **Independence** — each module has a single job and clear contract  
-2. **First principles** — solve the data/control problem before picking frameworks  
-3. **Resilience** — retries, timeouts, degraded modes, structured logs  
-4. **Extensibility** — swap mock ↔ live APIs without rewriting core logic  
-5. **LLM as force multiplier** — architecture owns the system; tools accelerate code  
+## Tech
 
-## License
-
-Demo code is provided for portfolio evaluation and educational use.  
-© Rob Donohue — all rights reserved unless otherwise noted in a subfolder.
+HTML, CSS, JavaScript, and Chart.js on the site. Python, pandas, pydantic, httpx, PyYAML, Rich, yfinance, and pytest in the worksheet package.
