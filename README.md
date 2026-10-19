@@ -1,6 +1,6 @@
-# Rob Donohue — Systems Architecture Portfolio
+# Rob Donohue — Applied AI & Business Systems Architecture Portfolio
 
-**Original demo frameworks** for AI infrastructure, solution architecture, and defense-tech roles.
+**Original demo frameworks** for Solutions Architect and AI deployment roles.
 
 > First-principles architecture. Modular systems that stand independently. LLMs as implementation accelerators—not substitutes for design.
 
@@ -21,7 +21,7 @@ Hiring managers and technical leaders evaluating systems architecture depth thro
 
 | Section | Purpose |
 |---------|---------|
-| Hero / About | Background: MBSE, data/ETL, AI/automation, TS-cleared environments |
+| Hero / About | Applied AI & business systems architecture; Consultant at Deloitte, about 5 years |
 | Skills / Stack | Technical surface area with architecture focus |
 | Demo Projects | 4–6 original frameworks (runnable + documented) |
 | Philosophy | Fountainhead-inspired first principles |
